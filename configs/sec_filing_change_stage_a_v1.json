@@ -1,0 +1,281 @@
+{
+  "schema_version": "sec_filing_change_stage_a_protocol_v1",
+  "protocol_authored_at": "2026-09-04T03:20:56Z",
+  "experiment": {
+    "name": "sec_filing_change_stage_a_v1",
+    "purpose": "paper_inspired_deterministic_whole_document_signal_falsification_before_nonlinear_ml",
+    "primary_hypothesis": "high year_over_year filing similarity outperforms low similarity after conservative execution and costs",
+    "stage_a_success": "STAGE_A_PROXY_SURVIVED",
+    "stage_a_failure": "RETIRE_DETERMINISTIC_FILING_CHANGE_STAGE_A",
+    "historical_alpha_verdict": "INVALID",
+    "model_verdict": "NOT VALIDATED",
+    "deployment_verdict": "NOT AUTHORIZED",
+    "selection_or_tuning_after_outcome": false,
+    "reason": "The 1500-name 2026-08-31 current-survivor universe lacks permanent security identifiers and delisting payoff lineage. Stage A can falsify a weak signal but cannot validate historical alpha."
+  },
+  "research_prior": {
+    "paper": "Lazy Prices",
+    "authors": "Cohen, Malloy, and Nguyen",
+    "nber_url": "https://www.nber.org/papers/w25084",
+    "paper_sample": "SEC 10-K and 10-Q filings from 1995 through 2014 with CRSP returns",
+    "paper_signal": "same issuer and same fiscal-period filing similarity versus the prior year",
+    "paper_direction": "long Q5 non-changers and short Q1 changers",
+    "paper_holding": "three months with monthly rebalance",
+    "paper_reported_equal_weight_long_short_excess_return_bps_per_month": "18_to_38_across_similarity_methods",
+    "paper_reported_value_weight_long_short_excess_return_bps_per_month": "up_to_56",
+    "paper_reported_alpha_context": "45_bps_is_equal_weight_five_factor_alpha_for_minimum_edit_distance_and_58_bps_is_value_weight_three_factor_alpha_for_simple_similarity_not_excess_return",
+    "replication_limit": "Public adjusted-open prices are not CRSP and current files may reflect post-acceptance corrections."
+  },
+  "sources": {
+    "universe": {
+      "path": "artifacts/public_broad_proxy_v1/data/frozen_proxy_universe.csv",
+      "selection_as_of": "2026-08-31",
+      "source_class": "current_survivor_proxy",
+      "expected_names": 1500
+    },
+    "sec_submissions_cache": "data/cache/sec",
+    "sec_header_manifest": "artifacts/sec_periodic_filing_inventory_v1/raw_manifest.json",
+    "daily_prices": {
+      "path": "artifacts/public_broad_proxy_v1/data/daily_prices.parquet",
+      "start": "2014-01-02",
+      "end": "2026-08-31",
+      "source_class": "current_ticker_yahoo_retrospective",
+      "required_fields": ["ticker", "date", "timestamp", "close", "volume", "adj_open"]
+    },
+    "exchange_calendar": {
+      "path": "artifacts/reference_calendars/xnys_v1/xnys_regular_sessions_2014_2028.csv",
+      "receipt": "artifacts/reference_calendars/xnys_v1/calendar_receipt.json",
+      "generator": "scripts/build_xnys_calendar_snapshot.py",
+      "calendar": "XNYS",
+      "source_status": "independent_versioned_community_ruleset_not_exchange_licensed_data"
+    },
+    "sec_archives": "https://www.sec.gov/Archives/edgar/data",
+    "provider_fallback_permitted": false,
+    "sec_user_agent_rule": "A real operator name and contact email is mandatory; placeholder or invented identities are prohibited."
+  },
+  "filing_eligibility": {
+    "forms": ["10-K", "10-Q"],
+    "amendments_permitted": false,
+    "minimum_header_date": "2018-01-01",
+    "first_signal_date": "2019-01-01",
+    "same_cik_required": true,
+    "same_form_required": true,
+    "same_fiscal_period_required": true,
+    "prior_fiscal_year_difference": 1,
+    "minimum_report_date_gap_days": 300,
+    "maximum_report_date_gap_days": 430,
+    "fiscal_period_source": "DEI DocumentFiscalPeriodFocus from primary document",
+    "fiscal_year_source": "DEI DocumentFiscalYearFocus from primary document",
+    "fiscal_identity_calendar_guess_permitted": false,
+    "duplicate_original_fiscal_key_policy": "exclude_entire_key",
+    "post_acceptance_correction_detection": "required_for_stage_b_not_available_in_stage_a"
+  },
+  "clock": {
+    "api_source": "SEC submissions acceptanceDateTime",
+    "raw_source": "accession raw SGML ACCEPTANCE-DATETIME",
+    "raw_api_maximum_difference_seconds": 1,
+    "public_time_claim": "conservative_execution_relative_to_verified_acceptance_not_exact_first_public",
+    "benchmark": "SPY",
+    "benchmark_timestamp": "09:30 America/New_York",
+    "formation_month": "calendar_month_after_acceptance_in_America/New_York",
+    "quarantine": "one complete regular benchmark session after acceptance",
+    "entry": "common_second_regular_benchmark_open_of_formation_month",
+    "formal_calendar_exit": "common second regular benchmark open three calendar months after formation entry",
+    "event_diagnostic_exit": "63 benchmark sessions after entry",
+    "same_day_or_close_fill_permitted": false,
+    "missing_session_forward_fill_permitted": false
+  },
+  "document": {
+    "selected_content": "primaryDocument only",
+    "complete_submission_bundle_as_text_signal": false,
+    "manifest": "gzip raw bytes plus URL HTTP metadata byte count and SHA256",
+    "remove_tags": ["script", "style", "noscript", "ix:hidden", "object", "svg", "canvas", "math"],
+    "numeric_table_ratio": "digit_count divided by non_whitespace_character_count",
+    "remove_table_when_ratio_strictly_greater_than": 0.15,
+    "unicode_normalization": "NFKC",
+    "case": "lower",
+    "token_regex": "[a-z]+(?:'[a-z]+)?",
+    "minimum_clean_tokens_each_document": 1000,
+    "remove_stop_words": false,
+    "stemming": false,
+    "lemmatization": false,
+    "tfidf": false,
+    "embedding": false,
+    "length_ratio_filter": null
+  },
+  "signals": {
+    "primary": {
+      "name": "jaccard_similarity",
+      "formula": "unique_term_intersection divided by unique_term_union"
+    },
+    "secondary": {
+      "name": "cosine_similarity",
+      "formula": "raw_term_frequency_dot_product divided by L2_norm_product",
+      "decision_role": "predeclared_secondary_falsification_only"
+    },
+    "global_vocabulary": false,
+    "score_winsorization_for_sort": false,
+    "sort": {
+      "frequency": "release_calendar_month",
+      "breakpoint_information_set": "all eligible scores whose SEC acceptance occurs in that completed release month",
+      "formation": "next calendar month",
+      "minimum_monthly_observations": 100,
+      "quantiles": 5,
+      "quantile_interpolation": "linear",
+      "q1_direction": -1,
+      "q5_direction": 1,
+      "middle_quintiles_trade": false
+    }
+  },
+  "cohorts": {
+    "development": {
+      "release_month_gte": "2019-01",
+      "release_month_lte": "2022-12",
+      "formal_evaluation_month_gte": "2019-02",
+      "formal_evaluation_month_lte": "2023-03"
+    },
+    "confirmation": {
+      "release_month_gte": "2023-01",
+      "release_month_lte": "2024-12",
+      "formal_evaluation_month_gte": "2023-04",
+      "formal_evaluation_month_lte": "2025-03",
+      "event_entry_must_follow_last_development_event_exit": true,
+      "calendar_entry_must_not_precede_last_development_calendar_exit": true
+    },
+    "sealed_2025_historical": {
+      "release_month_gte": "2025-01",
+      "release_month_lte": "2025-12",
+      "entry_boundary": "derived_after_confirmation_event_and_calendar_exits",
+      "status": "signal_return_unopened_historical_test_not_pristine_prospective"
+    },
+    "true_prospective_outer": {
+      "release_month_gte": "2026-10",
+      "release_month_lte": "2027-09",
+      "status": "must_remain_unopened_until_every_63_session_exit_matures"
+    },
+    "purge_reason": "Event entries must follow the prior cohort's last 63-session exit; formal calendar entries must not precede the prior cohort's last second-open calendar exit."
+  },
+  "eligibility": {
+    "minimum_prior_unadjusted_close_usd": 5.0,
+    "adv_window_sessions": 63,
+    "adv_statistic": "median close_times_volume",
+    "minimum_prior_adv_usd": 20000000.0,
+    "minimum_prior_stock_sessions": 252,
+    "same_cik_multiple_share_classes": "choose_highest_prior_63_session_ADV_then_lexicographic_ticker",
+    "same_ticker_multiple_cik": "exclude_all",
+    "same_ticker_same_entry_different_direction": "exclude_all_before_outcomes",
+    "same_ticker_overlapping_events": "retain_earliest_then_ignore_entry_on_or_before_retained_exit"
+  },
+  "risk_and_return": {
+    "primary_horizon_sessions": 63,
+    "beta_return": "adjusted_open_to_adjusted_open",
+    "beta_window_matched_sessions": 252,
+    "minimum_beta_observations": 200,
+    "beta_window_end": "placebo_start_inclusive",
+    "beta_cap": null,
+    "stock_weight": "direction/(1+abs(beta))",
+    "benchmark_weight": "-direction*beta/(1+abs(beta))",
+    "primary_one_way_cost_rate": 0.003,
+    "stress_one_way_cost_rate": 0.005,
+    "cost_formula": "rate*(abs(ws)+abs(wm)+abs(ws*(1+r_stock))+abs(wm*(1+r_spy)))",
+    "formal_decision_statistic": "paper-aligned proxy calendar-time Q5-minus-Q1 equal-weight portfolio held three months and rebalanced at the common second regular open of each month",
+    "cohort_weighting": "frozen implementation assumption not specified by Lazy Prices: equal weight across up to three active formation cohorts and equal weight within each cohort-side",
+    "transaction_costing": "first-order cost overlay on actual target-weight turnover at each rebalance plus terminal liquidation; pre-rebalance holdings are drifted by security returns and normalized by gross pre-cost portfolio NAV; 30bps primary and 50bps stress one-way",
+    "insolvency_policy": "fail closed if gross pre-cost or 30bp or 50bp first-order net-cost portfolio NAV is nonpositive in any month; margin calls and forced liquidation are not modeled",
+    "event_diagnostic_aggregation": "equal_weight_events_within_entry_date_then_equal_weight_entry_dates",
+    "event_diagnostic_role": "secondary falsification and concentration checks only",
+    "not_modeled": ["historical_stock_loan", "locate_failures", "financing", "nonlinear_impact"]
+  },
+  "inference": {
+    "unit": "nonempty_calendar_portfolio_month",
+    "hac_bartlett_lags_in_calendar_months": 3,
+    "alternative": "mean_greater_than_zero",
+    "existing_disclosed_trial_floor": 124,
+    "new_formal_trials_before_2025": [
+      "D_JACCARD_MONTHLY_NET30",
+      "D_COSINE_MONTHLY_NET30",
+      "C_JACCARD_MONTHLY_NET30",
+      "C_JACCARD_MONTHLY_NET50",
+      "C_JACCARD_EVENT_PREPLACEBO_63",
+      "C_JACCARD_EVENT_POST_MINUS_PRE_63"
+    ],
+    "p_value_emitting_trials": [
+      "D_JACCARD_MONTHLY_NET30",
+      "D_COSINE_MONTHLY_NET30",
+      "C_JACCARD_MONTHLY_NET30",
+      "C_JACCARD_EVENT_PREPLACEBO_63"
+    ],
+    "mean_gate_only_trials_without_p_value": [
+      "C_JACCARD_MONTHLY_NET50",
+      "C_JACCARD_EVENT_POST_MINUS_PRE_63"
+    ],
+    "current_disclosed_trial_floor": 130,
+    "known_floor_screen": "raw one-sided p times 130; this is not a complete FWER claim",
+    "family_pipeline_permutations": 10000,
+    "permutation_seed": 929,
+    "permutation_bucket": "form by fiscal_period by filing_calendar_year",
+    "permutation_unit": "joint cosine_jaccard score pair with full sort and cohort pipeline rerun",
+    "random_universe_diagnostics": 200,
+    "random_universe_seed": 929,
+    "random_universe_role": "stability_diagnostic_not_independent_trials",
+    "descriptive_only_no_p_values": ["gross_return", "development_net50", "event_net30", "event_net50", "decile_curve", "monthly_rank_IC", "form_legs", "year_legs"]
+  },
+  "gates": {
+    "development_minimums": {"signed_events": 1500, "unique_cik": 600, "portfolio_months": 36, "maximum_possible_release_months": 48, "each_form_direction": 250, "each_form_portfolio_months": 12},
+    "confirmation_minimums": {"signed_events": 1000, "unique_cik": 500, "portfolio_months": 18, "maximum_possible_release_months": 24, "each_form_direction": 150, "each_form_portfolio_months": 6},
+    "sealed_2025_minimums": {"signed_events": 400, "unique_cik": 250, "portfolio_months": 9, "maximum_possible_release_months": 12, "each_form_direction": 75, "each_form_portfolio_months": 3},
+    "coverage": {
+      "sec_raw_clock": 1.0,
+      "primary_document_retrieval": 0.98,
+      "prior_year_pairing": 0.80,
+      "parse_success": 0.98,
+      "ticker_mapping": 0.95,
+      "benchmark_clock": 1.0,
+      "event_exact_price_path": 0.90,
+      "formal_calendar_exact_price_path": 1.0
+    },
+    "efficacy_all_required": [
+      "gross_mean_gt_zero",
+      "net30_mean_gt_zero",
+      "net50_mean_gt_zero",
+      "hac_t_ge_dynamic_known_floor_critical",
+      "known_floor_adjusted_screening_p_lte_0.05",
+      "family_pipeline_permutation_p_lte_0.05",
+      "each_calendar_year_monthly_net30_positive",
+      "10K_and_10Q_monthly_portfolios_nonnegative",
+      "pre_event_placebo_not_significantly_positive",
+      "post_minus_pre_mean_gt_zero",
+      "complete_expected_calendar_months",
+      "exact_leave_one_cik_out_calendar_net30_mean_gt_zero"
+    ],
+    "maximum_single_cik_absolute_contribution_share": 0.02,
+    "maximum_entry_date_absolute_contribution_share": 0.05,
+    "maximum_absolute_calendar_portfolio_target_weight": 0.02,
+    "minimum_leave_one_cik_out_net30_mean": 0.0,
+    "failure_policy": "retire_without_threshold_horizon_direction_parser_liquidity_or_cost_repair"
+  },
+  "nonlinear_ml_gate": {
+    "authorized_now": false,
+    "unlock_rule": "At least two orthogonal deterministic signal families must survive independent confirmation after costs.",
+    "future_design": "walk-forward nonlinear interactions with held-out stocks, 200 random universes, 200 or more label permutations, factor deciles, IC, costs, capacity, and multiple-testing corrections"
+  },
+  "required_artifacts": [
+    "design_receipt",
+    "accession_and_pairing_ledger",
+    "raw_document_manifest",
+    "raw_clock_reconciliation",
+    "clean_document_manifest",
+    "parser_removal_audit",
+    "similarity_scores",
+    "monthly_cutoff_ledger",
+    "preoutcome_event_schedule",
+    "exclusions",
+    "price_path_coverage",
+    "event_outcomes",
+    "entry_date_returns",
+    "trial_ledger",
+    "gates",
+    "summary_and_charts",
+    "independent_reconstruction"
+  ]
+}

@@ -1,0 +1,155 @@
+experiment:
+  name: form4_event_alpha_v1
+  research_status: diagnostic_only
+  primary_estimand: matched_abnormal_open_to_open_return_20_sessions
+  signal_label: form4_code_p_purchase
+  warning: SEC transaction code P includes exchange and private purchases
+
+sources:
+  insider_dataset_page: https://www.sec.gov/data-research/sec-markets-data/insider-transactions-data-sets
+  submissions_url_template: https://data.sec.gov/submissions/CIK{cik:010d}.json
+  archive_root: https://www.sec.gov/Archives/edgar/data
+  sec_user_agent_env: SEC_USER_AGENT
+  cache_dir: data/cache/sec/insider
+  minimum_request_interval_seconds: 0.20
+  require_content_addressed_cache: true
+  require_raw_filing_reconciliation: true
+  known_null_date_sentinel: 01-JAN-0001
+  aff10b5one_schema_required_from_year: 2023
+
+sample:
+  smoke_start_quarter: 2025q4
+  smoke_end_quarter: 2025q4
+  minimum_research_history_start_quarter: 2022q1
+  minimum_research_evaluation_start: 2025-01-01
+  minimum_research_evaluation_end: 2025-12-31
+  recommended_history_start_quarter: 2020q1
+  recommended_evaluation_start: 2023-04-01
+  recommended_evaluation_end: 2025-12-31
+
+signal:
+  document_type: "4"
+  transaction_form_type: "4"
+  transaction_code: P
+  acquired_disposed_code: A
+  require_equity_swap_false: true
+  require_rule_10b5_1_false: true
+  rule_10b5_1_primary_signal_eligible_from: 2023-04-01
+  pre_effective_history_use: routine_classification_only
+  qualifying_owner_roles:
+    - Officer
+    - Director
+  minimum_purchase_usd: 25000
+  include_security_regex: common|ordinary
+  exclude_security_regex: preferred|warrant|option|phantom|restricted|unit|depositary|convertible
+  include_direct_ownership: true
+  include_indirect_ownership: true
+  exclude_amendments_from_primary: true
+
+clock:
+  canonical_timestamp: first_public_evidence_at
+  acceptance_source: raw_sgml_required
+  submissions_json_policy: provisional_crosscheck_only
+  verify_against_raw_acceptance_header: true
+  require_first_daily_index_appearance: true
+  require_daily_index_snapshot_hash: true
+  historical_public_evidence: first_daily_master_http_last_modified
+  public_information_rule: max_raw_acceptance_at_and_first_daily_master_last_modified_at
+  historical_entry_rule: first_regular_open_strictly_after_public_information_at
+  live_entry_rule: first_exchange_open_after_observed_retrieval_and_auction_cutoff
+  live_information_delay_minutes_sensitivity: 5
+  fallback_filing_date_quarantine_full_sessions: 1
+  fallback_clock_claim_status: diagnostic_only
+  missing_public_evidence_policy: fail
+  json_clock_conflict_policy: fail_closed
+  pac_policy: preserve_daily_first_and_flag_current_state
+  holding_sessions: 20
+  exit_rule: opening_auction
+  missing_clock_policy: fail
+  missing_price_policy: fail
+
+timeliness:
+  maximum_calendar_days_transaction_to_filing: 5
+  late_or_backdated_policy: exclude_primary_and_retain_in_audit
+  trans_timeliness_flag_sufficient_by_itself: false
+
+insider_classification:
+  method: cohen_malloy_pomorski_calendar_month
+  lookback_complete_calendar_years: 3
+  classification_date: january_1
+  incomplete_history_label: unclassified
+  challenger_requires_opportunistic_owner: true
+
+cluster:
+  trailing_calendar_days: 5
+  minimum_opportunistic_owners_for_cluster_challenger: 2
+  causal_window_only: true
+  collapse_same_issuer_entry_session: true
+  overlapping_position_policy: ignore_new_signal_until_exit
+
+universe:
+  contemporaneous_liquidity_rank_maximum: 1000
+  minimum_price_usd: 5
+  minimum_adv_63d_usd: 20000000
+  require_historical_security_master_for_validation: true
+  require_explicit_delisting_return_for_validation: true
+
+controls:
+  count_per_event: 3
+  require_same_sic2: true
+  allow_industry_fallback: false
+  features:
+    - log_market_cap
+    - log_adv_63d
+    - residual_momentum_12_1
+    - beta_12m
+    - idio_vol_12m
+  feature_availability_rule: available_at_lte_information_at
+  exclude_control_if_event_known_by_information_at: true
+  future_event_exclusion: false
+
+costs_and_capacity:
+  trading_cost_bps_one_way: 15
+  sensitivity_bps_one_way:
+    - 15
+    - 30
+    - 50
+  portfolio_aum_usd:
+    - 2000000
+    - 5000000
+    - 10000000
+  maximum_adv_participation: 0.02
+
+validation:
+  primary_horizon_sessions: 20
+  secondary_horizon_sessions:
+    - 5
+    - 60
+  conditional_random_event_nulls: 200
+  null_strata:
+    - entry_session
+    - sic2
+    - liquidity_bucket
+  multiple_testing_method: romano_wolf
+  cluster_inference_by:
+    - issuer_cik
+    - entry_session
+  require_pre_filing_placebo: true
+  negative_control_transaction_code: A
+  chronological_holdout_year: 2025
+  held_out_issuer_fraction: 0.20
+  held_out_issuer_seed: 929
+
+outputs:
+  directory: artifacts/form4_event_alpha_v1
+  required:
+    - run_manifest.json
+    - source_audit.csv
+    - event_exclusions.csv
+    - purchase_events.parquet
+    - event_clusters.parquet
+    - matched_controls.parquet
+    - event_returns.csv
+    - trade_ledger.csv
+    - validation_gates.json
+    - report.md

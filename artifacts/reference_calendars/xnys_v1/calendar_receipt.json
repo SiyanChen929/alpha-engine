@@ -1,0 +1,28 @@
+{
+  "calendar": "XNYS",
+  "calendar_semantics": "regular exchange sessions and scheduled open/close timestamps",
+  "created_at": "2026-09-03T17:47:46.952214+00:00",
+  "crosscheck_source": "https://www.nyse.com/trade/hours-calendars",
+  "exchange_calendars_version": "4.11.2",
+  "first_session": "2014-01-02",
+  "last_session": "2028-12-29",
+  "package_source": "https://pypi.org/project/exchange-calendars/4.11.2/",
+  "records": [
+    {
+      "bytes": 3230,
+      "path": "scripts/build_xnys_calendar_snapshot.py",
+      "role": "calendar_snapshot_generator",
+      "sha256": "aaff1e7cae5d60624a1b3645ac5a5c6d7aac4a776a966a1e412f906a9167f26f"
+    },
+    {
+      "bytes": 199909,
+      "path": "artifacts/reference_calendars/xnys_v1/xnys_regular_sessions_2014_2028.csv",
+      "role": "xnys_regular_sessions",
+      "sha256": "d58a714e5a4fd195855ecc0969c78acb9b5b517436dc09aaed997d1c860a6112"
+    }
+  ],
+  "schema_version": "xnys_calendar_snapshot_receipt_v1",
+  "sessions": 3771,
+  "source_status": "INDEPENDENT_VERSIONED_COMMUNITY_RULESET_NOT_EXCHANGE_LICENSED_DATA",
+  "tzdata_version": "2026.3"
+}

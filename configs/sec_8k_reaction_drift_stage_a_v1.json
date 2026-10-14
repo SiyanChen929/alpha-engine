@@ -1,0 +1,79 @@
+{
+  "schema_version": "sec_8k_reaction_drift_stage_a_protocol_v1",
+  "experiment_id": "sec_8k_reaction_drift_stage_a_v1",
+  "authored_at": "2026-09-04T10:35:00-04:00",
+  "status": "PRE_OUTCOME_DESIGN",
+  "historical_alpha_verdict": "INVALID",
+  "model_alpha_verdict": "NOT VALIDATED",
+  "deployment_verdict": "NOT AUTHORIZED",
+  "economic_hypothesis": "The market may underreact to earnings news. The direction of a fully observed stock-minus-SPY close-to-close reaction following an SEC Item 2.02 filing may predict same-direction residual returns over the next 20 sessions.",
+  "source_boundaries": {
+    "universe": "artifacts/public_broad_proxy_v1/data/frozen_proxy_universe.csv",
+    "expected_universe_names": 1500,
+    "sec_raw_manifest": "artifacts/sec_periodic_filing_inventory_v1/raw_manifest.json",
+    "sec_cache": "data/cache/sec",
+    "price_panel": "artifacts/public_broad_proxy_v1/data/daily_prices.parquet",
+    "exchange_calendar": "artifacts/reference_calendars/xnys_v1/xnys_regular_sessions_2014_2028.csv",
+    "universe_status": "CURRENT_SURVIVOR_PROXY_NOT_PIT",
+    "outcome_access_during_plan": false
+  },
+  "event_definition": {
+    "form": "8-K",
+    "required_item": "2.02",
+    "minimum_filing_date": "2018-01-01",
+    "maximum_filing_date": "2025-12-31",
+    "public_clock": "later of exact SEC API acceptance timestamp and 00:00 New York on filingDate",
+    "reaction_session": "first regular XNYS close at least 30 minutes after public_clock",
+    "reaction_return": "issuer close-to-close return minus SPY close-to-close return on reaction_session",
+    "historical_threshold_window_days": 730,
+    "historical_threshold_minimum_events": 500,
+    "tail_probability": 0.20,
+    "threshold_clock": "only reaction sessions strictly earlier than the current reaction session",
+    "entry": "next regular XNYS open after reaction_session close",
+    "exit": "regular XNYS open 20 sessions after entry",
+    "position": "50 percent signed issuer and 50 percent opposite-signed SPY per unit gross exposure",
+    "same_ticker_same_filing_date": "keep earliest public_clock then accession ascending",
+    "same_ticker_overlap": "keep earliest entry and suppress later signals until prior exit",
+    "minimum_prior_close": 5.0,
+    "minimum_prior_stock_sessions": 252,
+    "adv_window_sessions": 63,
+    "minimum_trailing_adv_usd": 20000000,
+    "primary_cost_bps_one_way": 30,
+    "stress_cost_bps_one_way": 50,
+    "portfolio_aum_usd": 10000000
+  },
+  "cohorts": {
+    "development": {"public_years_et": [2018, 2019, 2020, 2021], "outcome_role": "threshold_history_and_opened_description"},
+    "confirmation": {"public_years_et": [2022, 2023, 2024], "outcome_role": "single_frozen_primary_test"},
+    "sealed_2025": {"public_years_et": [2025], "outcome_role": "signal_clock_only_no_price_join"}
+  },
+  "formal_tests": {
+    "primary_trial_id": "SEC_8K_202_REACTION_DRIFT_CONFIRMATION_2022_2024_NET30",
+    "primary": "equal-entry-date mean signed pair return net of 30 bps one-way",
+    "stress": "equal-entry-date mean signed pair return net of 50 bps one-way",
+    "inference": "Newey-West on entry-date portfolios with lag 3",
+    "current_disclosed_trial_floor": 134,
+    "multiplicity": "Bonferroni using at least the disclosed global trial floor"
+  },
+  "confirmation_gates": {
+    "minimum_events": 1000,
+    "minimum_tickers": 300,
+    "minimum_entry_dates": 250,
+    "minimum_price_path_coverage": 0.80,
+    "primary_net_mean_minimum": 0.0,
+    "primary_newey_west_t_minimum": 3.0,
+    "global_adjusted_p_maximum": 0.05,
+    "stress_net_mean_minimum": 0.0,
+    "maximum_ticker_gross_contribution_share": 0.05,
+    "minimum_leave_one_ticker_out_mean": 0.0,
+    "maximum_trade_to_trailing_adv_at_10m": 0.01
+  },
+  "hard_claim_limits": [
+    "Item 2.02 identifies an SEC-filed results disclosure but may lag the issuer or newswire first-public earnings release.",
+    "SEC API acceptance timestamps are not reconciled to raw accession SGML headers.",
+    "The universe is selected from 2026 survivors and lacks permanent security identities and delisting returns.",
+    "Yahoo closes and adjusted opens are retrospective proxies and not executable quotes.",
+    "Historical borrow, financing and TAQ impact are absent.",
+    "The 2025 cohort must remain signal-clock-only and may not join any price value."
+  ]
+}

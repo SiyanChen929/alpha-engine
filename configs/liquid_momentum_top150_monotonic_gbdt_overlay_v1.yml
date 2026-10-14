@@ -1,0 +1,141 @@
+research:
+  strategy_version: liquid_momentum_top150_monotonic_gbdt_overlay_v1
+  frozen: true
+  evidence_status: opened_post_selection_current_survivor_proxy
+  source_panel: artifacts/liquid_residual_momentum_v1/liquid_universe_panel.parquet
+  output_dir: artifacts/liquid_momentum_top150_monotonic_gbdt_overlay_v1
+  seed: 929
+  first_prediction: "2022-01-01"
+
+universe:
+  upstream_definition: current_sec_registrants_selected_with_2026_08_31_liquidity
+  upstream_survivorship_free: false
+  upstream_delisting_complete: false
+  security_column: ticker
+  permanent_security_identifier: false
+  monthly_liquid_universe_maximum: 1000
+  minimum_adv_usd: 50000000
+  momentum_candidate_count: 150
+  candidate_rule: top_3x_holdings_by_exact_total_momentum_12_1
+  tie_breaker: ticker_ascending
+
+target:
+  realized_return_column: target_return
+  definition: within_candidate_next_open_to_next_rebalance_open_return_rank_residual
+  controls:
+    - exact_total_momentum_12_1
+    - beta_12m
+    - log_market_cap
+    - log_dollar_volume_3m
+  training_availability_rule: exit_at_strictly_before_fit_cutoff
+  fold_rule: construct_return_rank_and_residual_after_excluding_heldout_security_fold
+
+features:
+  columns:
+    - exact_total_momentum_12_1
+    - residual_momentum_score
+    - momentum_6_1
+    - reversal_1m
+    - realized_vol_3m
+    - downside_vol_3m
+    - beta_12m
+    - idio_vol_12m
+    - illiquidity_3m
+    - log_dollar_volume_3m
+    - price_to_52w_high
+    - max_drawdown_12m
+    - skew_3m
+    - log_market_cap
+    - book_to_market
+    - earnings_yield
+    - roe
+    - roa
+    - gross_profitability
+    - debt_to_equity
+    - asset_growth
+    - sales_growth
+    - accruals
+    - free_cash_flow_yield
+  preprocessing: fold_local_monthly_centered_ranks_plus_fixed_missing_indicators
+  macro_features: excluded_due_to_only_90_monthly_states
+
+model:
+  family: sklearn_hist_gradient_boosting_regressor
+  annual_expanding_refit: true
+  recency_half_life_years: 5.0
+  minimum_training_rows: 3500
+  max_iter: 250
+  learning_rate: 0.04
+  max_leaf_nodes: 15
+  l2_regularization: 1.0
+  min_samples_leaf: 20
+  early_stopping: false
+  monotonic_directions:
+    book_to_market: 1
+    earnings_yield: 1
+    roe: 1
+    roa: 1
+    gross_profitability: 1
+    debt_to_equity: -1
+    asset_growth: -1
+    sales_growth: 1
+    accruals: -1
+    free_cash_flow_yield: 1
+
+overlay:
+  baseline: total_momentum_top50
+  momentum_weight: 0.80
+  ml_weight: 0.20
+  orthogonalize_ml_to:
+    - exact_total_momentum_12_1
+    - beta_12m
+    - log_market_cap
+  holdings: 50
+  retention_rank: 75
+  weighting: equal
+  trading_cost_bps_one_way: 25
+  cost_sensitivity_bps: [15, 25, 50]
+  runner_stage: blocked_until_strict_heldout_ic_gate_passes
+
+validation:
+  security_holdout_folds: 5
+  heldout_preprocessing: strict_fold_local
+  heldout_portfolio_claim: prohibited_because_fold_scores_are_not_cross_fold_calibrated
+  primary_heldout_metric: monthly_mean_incremental_rank_ic
+  block_bootstrap_length_months: 12
+  label_permutation_full_retrains: 200
+  disclosed_multiple_testing_family_size_minimum: 15
+
+gates:
+  zero_security_overlap: true
+  all_training_labels_exited_before_cutoff: true
+  strict_heldout_mean_incremental_rank_ic_minimum: 0.00
+  strict_heldout_incremental_ic_hac_tstat_minimum: 2.00
+  minimum_positive_security_folds: 3
+  later_portfolio_incremental_return_minimum: 0.00
+  later_portfolio_information_ratio_minimum: 0.50
+  later_portfolio_hac_tstat_after_search_minimum: 3.00
+  later_label_permutation_bonferroni_pvalue_maximum: 0.05
+  later_positive_incremental_return_at_cost_bps: 50
+
+known_opened_trials_added_by_this_research:
+  - full_liquid_existing_nonlinear_ensemble_incremental_target_overlay
+  - top150_unconstrained_hist_gbdt_incremental_target_overlay
+  - top150_monotonic_hist_gbdt_strict_heldout_ic
+
+claim_limits:
+  permitted:
+    - strict_fold_local_heldout_ic_diagnostic
+    - opened_development_comparison
+  prohibited:
+    - untouched_holdout
+    - survivorship_free_us_equity_alpha
+    - production_ready
+    - heldout_fold_stitched_portfolio_return
+
+prospective:
+  freeze_deadline: "2026-09-29T20:00:00-04:00"
+  first_signal_at: "2026-09-30T20:00:00-04:00"
+  first_entry_at: "2026-10-01T09:30:00-04:00"
+  minimum_months: 36
+  change_policy: any_target_feature_fold_model_overlay_or_cost_change_requires_new_version

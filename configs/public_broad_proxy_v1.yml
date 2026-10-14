@@ -1,0 +1,76 @@
+research:
+  strategy_version: public_broad_proxy_v1
+  start: "2014-01-01"
+  end: "2026-08-31"
+  first_prediction: "2019-01-31"
+  untouched_holdout_start: "2023-01-01"
+  seed: 929
+  evidence_status: exploratory_current_survivor_proxy
+
+data:
+  sec_ticker_cache: data/cache/sec/company_tickers.json.gz
+  yahoo_cache_dir: data/cache/yahoo_proxy
+  output_dir: artifacts/public_broad_proxy_v1
+  benchmark: SPY
+  candidate_count: 2500
+  target_universe_count: 1500
+  minimum_downloaded_universe: 1000
+  yahoo_workers: 8
+  yahoo_chunk_size: 100
+  allowed_exchange_codes: [NYQ, NMS, NGM, NCM, ASE]
+  currency: USD
+  instrument_type: EQUITY
+
+universe:
+  definition: current_sec_registrants_filtered_by_current_trailing_63d_dollar_volume
+  minimum_price: 5.0
+  minimum_adv_usd: 5000000
+  minimum_monthly_cross_section: 1000
+  survivorship_free: false
+  delisting_complete: false
+
+model:
+  feature_set: price_first_then_sec_pit_fundamentals
+  target: next_month_next_open_return
+  minimum_training_rows: 25000
+  recency_half_life_years: 5
+  annual_refit: true
+  ensemble_weights:
+    ridge: 0.20
+    extra_trees: 0.45
+    histogram_gbdt: 0.35
+  extra_trees:
+    n_estimators: 150
+    min_samples_leaf: 50
+    max_features: 0.65
+  histogram_gbdt:
+    max_iter: 150
+    learning_rate: 0.04
+    max_leaf_nodes: 31
+    l2_regularization: 2.0
+
+portfolio:
+  holdings: 50
+  weighting: equal
+  trading_cost_bps_one_way: 15
+  cost_sensitivity_bps: [15, 25, 30, 50]
+  charge_initial_entry: true
+  charge_terminal_liquidation: true
+
+validation:
+  security_holdout_folds: 5
+  random_universe_simulations: 200
+  random_universe_sizes: [500, 1000]
+  full_retrain_label_permutations: 200
+  block_bootstrap_simulations: 5000
+  block_length_months: 12
+  random_seed: 929
+
+claim_limits:
+  permitted: robust_exploratory_evidence_within_the_frozen_current_survivor_proxy
+  prohibited:
+    - survivorship_free_us_equity_alpha
+    - delisting_complete_performance
+    - production_ready
+    - guaranteed_future_returns
+

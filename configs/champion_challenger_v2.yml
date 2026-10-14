@@ -1,0 +1,151 @@
+research:
+  name: champion_challenger_v2
+  source_panel: artifacts/public_research/data/monthly_feature_panel.parquet
+  source_daily_prices: artifacts/public_research/data/daily_prices.parquet
+  licensed_research_panel: data/licensed/champion_challenger_v2_panel.parquet
+  benchmark_ticker: SPY
+  evaluation_entry_at_or_after: "2019-01-01T00:00:00-05:00"
+  evaluation_exit_at_or_before: "2026-06-01T16:00:00-04:00"
+  evidence_status: opened_diagnostic
+  output_dir: artifacts/champion_challenger_v2
+  seed: 929
+
+reporting:
+  champion: m2_diversified_momentum_top10
+  benchmark: equal_weight_universe
+  annualization_factor: 12
+  role_mapping:
+    m1_baseline: m1_momentum_top6
+    m2_diversified_momentum: m2_diversified_momentum_top10
+    m3_sector_beta_constrained: m3_risk_bounded_momentum_top10
+    residual_ml_challenger: residual_ml_overlay_top10
+
+universe:
+  mode: public_current_ticker_proxy
+  source: dynamic_top30_from_current_ticker_proxy
+  ranking_column: log_market_cap
+  top_n: 30
+  minimum_cross_section: 20
+  production_mode: licensed_pit
+  permanent_id_column: permno
+  common_share_codes: [10, 11]
+  production_training_universe_minimum: 500
+  public_sector_metadata_column: sic_division_current
+  historical_sector_column: null
+  historical_sector_available_at_column: null
+  permit_current_sector_for_constraints: false
+
+signal:
+  decision_time_et: "20:00"
+  formation_sessions: 253
+  skip_sessions: 21
+  endpoint_definition: paper_p_t_minus_21_over_p_t_minus_253_minus_1
+  entry: next_session_open
+  exit: next_rebalance_open
+  tie_break_column: ticker
+
+candidates:
+  m1_momentum_top6:
+    score_column: momentum_12_1
+    holdings: 6
+    weighting: equal
+    max_name_weight: 0.16666666666666666
+  m2_diversified_momentum_top10:
+    score_column: momentum_12_1
+    holdings: 10
+    weighting: inverse_volatility
+    volatility_column: realized_vol_3m
+    volatility_floor: 0.05
+    max_name_weight: 0.125
+    beta_maximum: null
+    sector_maximum: null
+    retention_rank: 15
+  m3_risk_bounded_momentum_top10:
+    score_column: momentum_12_1
+    holdings: 10
+    weighting: inverse_volatility
+    volatility_column: realized_vol_3m
+    volatility_floor: 0.05
+    max_name_weight: 0.125
+    beta_maximum: 1.00
+    constituent_beta_maximum: 1.00
+    sector_maximum: 0.25
+    retention_rank: 15
+    require_historical_sector_for_sector_cap: true
+  residual_ml_overlay_top10:
+    holdings: 10
+    weighting: inverse_volatility
+    volatility_column: realized_vol_3m
+    volatility_floor: 0.05
+    max_name_weight: 0.125
+    momentum_weight: 0.80
+    residual_ml_weight: 0.20
+    orthogonalize_ml_to: [momentum_12_1, beta_12m, log_market_cap]
+    retention_rank: 15
+
+model:
+  first_prediction: "2018-01-31"
+  minimum_training_rows: 500
+  recency_half_life_years: 5
+  target: beta_size_residual_return_rank
+  seed: 929
+  ensemble_weights:
+    ridge: 0.20
+    extra_trees: 0.45
+    histogram_gbdt: 0.35
+  extra_trees:
+    n_estimators: 300
+    min_samples_leaf: 20
+    max_features: 0.65
+  histogram_gbdt:
+    max_iter: 250
+    learning_rate: 0.04
+    max_leaf_nodes: 15
+    l2_regularization: 1.0
+
+costs:
+  trading_cost_bps_one_way: 15
+  sensitivity_bps: [15, 25, 30, 50]
+  portfolio_aum_usd: 10000000
+  maximum_adv_participation: 0.01
+  charge_initial_entry: true
+  charge_terminal_liquidation: true
+
+gates:
+  zero_pit_violations: true
+  active_information_ratio_minimum: 0.50
+  active_annualized_return_minimum: 0.04
+  active_newey_west_tstat_minimum_after_search: 3.00
+  relative_max_drawdown_floor: -0.20
+  maximum_single_name_gross_profit_share: 0.20
+  positive_at_cost_bps: 25
+  positive_at_double_base_cost: true
+  maximum_adv_participation: 0.01
+  residual_ml_incremental_return_minimum: 0.00
+  residual_ml_bootstrap_sharpe_p05_minimum: 0.00
+  residual_ml_newey_west_tstat_minimum_after_search: 3.00
+  require_permanent_ids_for_production: true
+  require_delisting_returns_for_production: true
+  require_historical_sector_for_production: true
+  require_alfred_vintages_for_production: true
+  require_execution_quotes_for_production: true
+  require_historical_borrow_for_short_strategies: true
+
+opened_trials:
+  - equal_weight_universe
+  - m1_momentum_top6
+  - m2_diversified_momentum_top10
+  - m3_unfiltered_top10_beta1_infeasible
+  - m3_risk_bounded_momentum_top10
+  - residual_ml_overlay_top10
+
+prospective:
+  strategy_version: champion_challenger_v2
+  governance_dir: governance/champion_challenger_v2
+  freeze_deadline: "2026-09-29T20:00:00-04:00"
+  first_signal_at: "2026-09-30T20:00:00-04:00"
+  first_entry_at: "2026-10-01T09:30:00-04:00"
+  minimum_months: 36
+  champion: m2_diversified_momentum_top10
+  challenger: residual_ml_overlay_top10
+  change_policy: any_strategy_data_or_code_change_requires_new_version

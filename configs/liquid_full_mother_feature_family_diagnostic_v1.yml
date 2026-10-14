@@ -1,0 +1,182 @@
+research:
+  strategy_version: liquid_full_mother_feature_family_diagnostic_v1
+  report_title: Full mother-universe feature-family diagnostic
+  frozen: true
+  frozen_at: "2026-09-03T04:05:14-04:00"
+  audit_only_amendment_at: "2026-09-03T04:21:04-04:00"
+  audit_only_amendment: add_annual_fundamental_lineage_and_staleness_evidence_without_changing_scores_or_directions
+  evidence_status: opened_current_survivor_feature_diagnostic
+  source_panel: artifacts/liquid_residual_momentum_v2/evaluation_universe_panel.parquet
+  output_dir: artifacts/liquid_full_mother_feature_family_diagnostic_v1
+  seed: 929
+
+source_lineage:
+  source_panel: artifacts/liquid_residual_momentum_v2/evaluation_universe_panel.parquet
+  expected_source_sha256: e582d1d2c6b096cc9184bef590457e1d59b899b7dba4f1529d30e8d3eb238a6b
+  expected_source_rows: 76254
+  expected_source_months: 90
+  expected_source_securities: 1321
+  upstream_manifest: artifacts/liquid_residual_momentum_v2/artifact_manifest.json
+  expected_upstream_manifest_sha256: 1a4e45b3264f42c3d05c4944ea30d6e0274f9096324835571cdac2f0a83bef93
+  upstream_universe_audit: artifacts/liquid_residual_momentum_v2/monthly_universe_audit.csv
+  expected_upstream_universe_audit_sha256: b077915c52e447420dd1fd2dfd9826ea402ada8b99caacc3b5b6deca65fba5a3
+  upstream_opened_ledger: artifacts/liquid_residual_momentum_v2/opened_search_space_ledger.csv
+  expected_upstream_opened_ledger_sha256: 25b4dbb37e728f8bd22635dfa0295d05c44188d7dfa1be0cf542461c5b544afe
+  full_mother_predictions: artifacts/liquid_full_mother_universe_monotonic_gbdt_diagnostic_v1/strict_heldout_predictions.parquet
+  expected_full_mother_predictions_sha256: 862522bd15ebcc42d869a895a7df40a4b9699d4a1d4d22a08398a29d76c5d016
+  expected_full_mother_manifest_sha256: f21f60d11a0a28e57557368e6cf9561e2f630a908a8d3b752377c551b72d039d
+  expected_full_mother_prediction_rows: 49985
+  expected_full_mother_prediction_months: 54
+  full_mother_summary: artifacts/liquid_full_mother_universe_monotonic_gbdt_diagnostic_v1/strict_heldout_summary.json
+  expected_full_mother_summary_sha256: 0c125653b4f406d35197913c27774487cc1866531b4e07b91aa78bf4e7619cbd
+  prior_public_factor_summary: artifacts/public_broad_proxy_v1/factor_validation_holdout.csv
+  expected_prior_public_factor_summary_sha256: 47889d292052f35044465e9a013c8ce2ce446ac445e5d61619b7722111ee075e
+  monthly_feature_panel: artifacts/public_broad_proxy_v1/data/monthly_feature_panel.parquet
+  expected_monthly_feature_panel_sha256: a46dfbe0ddad890901d8f3b2fdf61c6c1ac88a5dde3eabc753cb8abf3fdd5b47
+  fundamental_source: artifacts/public_broad_proxy_v1/data/sec_annual_concepts.parquet
+  expected_fundamental_source_sha256: 409a24d1d96c66c279633b6757a160d3d51b500234cab726c8cb6d266106374f
+  fundamental_source_frequency: annual_xbrl_only
+
+universe:
+  definition: current_sec_registrants_monthly_liquidity_membership_selected_before_label_completion
+  survivorship_free: false
+  delisting_complete: false
+  permanent_security_identifier: false
+  security_column: ticker
+  observed_monthly_names_minimum: 653
+  observed_monthly_names_median: 857
+  observed_monthly_names_maximum: 1000
+
+clock:
+  decision_column: signal_date
+  price_available_column: price_available_at
+  residual_available_column: latest_input_available_at
+  fundamental_available_column: fundamental_available_at
+  entry_column: entry_at
+  exit_column: exit_at
+  target_column: target_return
+  rule: signal_strictly_before_entry_strictly_before_exit
+  membership_rule: frozen_before_target_completeness_check
+  stale_fundamental_warning_days: 365
+
+direction_policy:
+  status: opened_literature_signed_frozen_before_this_runner
+  untouched_holdout: false
+  note: prior factor and model results were already observed; no confirmatory preregistration is claimed
+
+features:
+  individual:
+    exact_total_momentum_12_1: {family: price, direction: 1}
+    residual_momentum_score: {family: price, direction: 1}
+    momentum_6_1: {family: price, direction: 1}
+    reversal_1m: {family: price, direction: -1}
+    price_to_52w_high: {family: price, direction: 1}
+    max_drawdown_12m: {family: price, direction: 1}
+    illiquidity_3m: {family: liquidity_size, direction: 1}
+    log_dollar_volume_3m: {family: liquidity_size, direction: -1}
+    log_market_cap: {family: liquidity_size, direction: -1}
+    realized_vol_3m: {family: volatility_risk, direction: -1}
+    downside_vol_3m: {family: volatility_risk, direction: -1}
+    beta_12m: {family: volatility_risk, direction: -1}
+    idio_vol_12m: {family: volatility_risk, direction: -1}
+    skew_3m: {family: volatility_risk, direction: -1}
+    book_to_market: {family: fundamental, direction: 1}
+    earnings_yield: {family: fundamental, direction: 1}
+    roe: {family: fundamental, direction: 1}
+    roa: {family: fundamental, direction: 1}
+    gross_profitability: {family: fundamental, direction: 1}
+    debt_to_equity: {family: fundamental, direction: -1}
+    asset_growth: {family: fundamental, direction: -1}
+    sales_growth: {family: fundamental, direction: 1}
+    accruals: {family: fundamental, direction: -1}
+    free_cash_flow_yield: {family: fundamental, direction: 1}
+  composites:
+    price_composite:
+      family: price
+      minimum_components: 6
+      components:
+        exact_total_momentum_12_1: 1
+        residual_momentum_score: 1
+        momentum_6_1: 1
+        reversal_1m: -1
+        price_to_52w_high: 1
+        max_drawdown_12m: 1
+    liquidity_size_composite:
+      family: liquidity_size
+      minimum_components: 2
+      components:
+        illiquidity_3m: 1
+        log_dollar_volume_3m: -1
+        log_market_cap: -1
+    volatility_risk_composite:
+      family: volatility_risk
+      minimum_components: 5
+      components:
+        realized_vol_3m: -1
+        downside_vol_3m: -1
+        beta_12m: -1
+        idio_vol_12m: -1
+        skew_3m: -1
+    fundamental_composite:
+      family: fundamental
+      minimum_components: 4
+      components:
+        book_to_market: 1
+        earnings_yield: 1
+        roe: 1
+        roa: 1
+        gross_profitability: 1
+        debt_to_equity: -1
+        asset_growth: -1
+        sales_growth: 1
+        accruals: -1
+        free_cash_flow_yield: 1
+
+evaluation:
+  momentum_control: exact_total_momentum_12_1
+  minimum_cross_section: 100
+  deciles: 10
+  decile_tie_breaker: ticker_ascending
+  target_winsor_lower: 0.01
+  target_winsor_upper: 0.99
+  primary_metric: monthly_momentum_orthogonal_rank_ic
+  no_model_training: true
+  score_construction_uses_target: false
+  periods:
+    pre_2026_primary:
+      signal_before: "2026-01-01"
+      hac_lags: 3
+      month_block_length: 12
+    2026_h1_reporting_only:
+      signal_at_or_after: "2026-01-01"
+      signal_before: "2026-07-01"
+      hac_lags: 3
+      month_block_length: 3
+  month_block_simulations: 5000
+
+multiple_testing:
+  upstream_disclosed_family_size_minimum: 77
+  new_feature_hypotheses: 28
+  current_disclosed_family_size_minimum: 105
+  adjustment: one_sided_hac_p_with_bh_28_and_bonferroni_105
+
+screen_gates:
+  minimum_mean_oriented_ic: 0.0
+  minimum_hac_tstat: 2.0
+  maximum_month_block_pvalue: 0.05
+  maximum_bh_qvalue: 0.05
+  maximum_family_bonferroni_pvalue: 0.05
+  minimum_winsorized_decile_spread: 0.0
+  minimum_monthly_coverage: 0.30
+
+claim_limits:
+  research_verdict: NOT VALIDATED
+  survivorship_free_alpha_claim: INVALID
+  deployability_verdict: INVALID
+  portfolio_authorized: false
+  prohibited:
+    - untouched_holdout
+    - survivorship_free_us_equity_alpha
+    - deployable_portfolio
+    - transaction_cost_adjusted_return
+    - causal_factor_claim

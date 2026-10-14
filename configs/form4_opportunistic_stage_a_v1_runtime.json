@@ -1,0 +1,93 @@
+{
+  "protocol": {
+    "aggregation": "equal_weight_by_event_within_entry_date",
+    "alternate_horizons_permitted": false,
+    "alternate_weights_permitted": false,
+    "benchmark": "SPY",
+    "beta": {
+      "end": "placebo_start_open_inclusive",
+      "intercept": true,
+      "maximum_matched_adjusted_open_returns": 252,
+      "minimum_matched_adjusted_open_returns": 200
+    },
+    "candidate_gate": "preclock_evaluation_candidate_true",
+    "classification_field": "provisional_event_classification",
+    "clock": {
+      "benchmark_open_timestamp": "09:30_America/New_York",
+      "entry": "second_spy_open_strictly_after_filing_calendar_date",
+      "exit_sessions_after_entry": 20,
+      "quarantined_full_spy_sessions": 1,
+      "source": "filing_calendar_date_proxy"
+    },
+    "costs": {
+      "formula": "c*(abs(ws)+abs(wm)+abs(ws*(1+r_stock))+abs(wm*(1+r_spy)))",
+      "primary_one_way_rate": 0.003,
+      "stress_one_way_rate": 0.005
+    },
+    "deployment_authorized": false,
+    "development_end_exclusive": "2025-01-01",
+    "development_start": "2023-04-01",
+    "eligibility": {
+      "minimum_prior_median_dollar_volume_usd": 20000000.0,
+      "minimum_prior_observed_sessions": 252,
+      "nominal_price_filter": null,
+      "prior_median_dollar_volume_sessions": 63
+    },
+    "event_consolidation": {
+      "collapsed_filing_date": "latest_in_group",
+      "cross_class_same_ticker_entry": "exclude_both_classes",
+      "same_ticker_entry_class": "collapse",
+      "same_ticker_same_class_overlap": "ignore_entry_on_or_before_prior_exit"
+    },
+    "historical_alpha_verdict": "INVALID",
+    "holdout_end_exclusive": "2026-01-01",
+    "holdout_start": "2025-01-01",
+    "inference": {
+      "alternative": "mean_greater_than_zero",
+      "bootstrap": "centered_circular_moving_blocks",
+      "bootstrap_block_length": 20,
+      "bootstrap_block_unit": "entry_date_observations",
+      "bootstrap_draws": 10000,
+      "bootstrap_seed": 929,
+      "disclosed_trial_floor_screening_multiplier": 124,
+      "family_wise_error_control_established": false,
+      "formal_test_count": 4,
+      "formal_tests": [
+        "opportunistic_net_30bps_mean_20_sessions",
+        "opportunistic_minus_routine_net_30bps_mean_20_sessions",
+        "opportunistic_signed_pre_event_placebo_20_sessions",
+        "opportunistic_net_50bps_mean_20_sessions"
+      ],
+      "hac_lags": 20,
+      "hac_lags_unit": "SPY_session_distance",
+      "index": "ordered_nonempty_entry_dates",
+      "minimum_common_entry_dates_for_mechanism": 30
+    },
+    "minimum_direct_purchase_usd": 25000.0,
+    "negative_control_class": "routine",
+    "primary_class": "opportunistic",
+    "require_aff10b5_eligible": true,
+    "require_timeliness_eligible": true,
+    "required_signal_type": "form4_code_p_purchase_candidate",
+    "return": {
+      "benchmark_weight": "-beta/(1+abs(beta))",
+      "field": "yahoo_vendor_adjusted_open",
+      "gross": "stock_weight*stock_return+benchmark_weight*benchmark_return",
+      "placebo": "20_spy_sessions_ending_last_open_strictly_before_filing_date",
+      "stock_weight": "1/(1+abs(beta))"
+    },
+    "ticker_rule": "^[A-Z][A-Z0-9]{0,9}(?:\\.[A-Z][A-Z0-9]{0,2})?$",
+    "tuning_permitted": false,
+    "yahoo_alias_rule": "replace_period_with_hyphen"
+  },
+  "schema_version": "form4_opportunistic_stage_a_config_v1",
+  "sources": {
+    "candidate_accessions": "artifacts/form4_event_alpha_v1/candidate_preregistration_2020q1_2025q4_v2/candidate_accessions.parquet",
+    "candidate_upstream_manifest": "artifacts/form4_event_alpha_v1/candidate_preregistration_2020q1_2025q4_v2/artifact_manifest.json",
+    "design_receipt": "artifacts/form4_opportunistic_stage_a_v1/design_receipt.json",
+    "human_protocol": "configs/form4_opportunistic_stage_a_v1.json",
+    "price_manifest": "artifacts/form4_opportunistic_stage_a_v1/acquisition/price_manifest.json",
+    "price_panel": "artifacts/form4_opportunistic_stage_a_v1/acquisition/prices.parquet",
+    "yahoo_adapter": "src/alpha_factor_engine/data/yahoo.py"
+  }
+}

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+
+# Data, caches, and generated research outputs (not redistributed)
+/data/
+/outputs/
+/output/
+/tmp/
+/logs/
+*.parquet
+*.sqlite
+*.npy
+*.csv.gz
+*.zip
+/artifacts/*
+!/artifacts/reference_calendars/
+governance/*/snapshots/
+governance/*/.*.lock
+
+# OS
+.DS_Store

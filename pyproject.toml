@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alpha-factor-engine"
+version = "0.1.0"
+description = "Auditable point-in-time engine for monthly US-equity alpha research"
+authors = [{ name = "Siyan Chen", email = "siyan_chen@ucsb.edu" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "duckdb>=1.1",
+  "matplotlib>=3.8",
+  "numba>=0.60",
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "pyarrow>=15",
+  "pyyaml>=6.0",
+  "requests>=2.31",
+  "scikit-learn>=1.4",
+  "scipy>=1.11",
+  "seaborn>=0.13",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+calendar = ["exchange-calendars>=4.5"]
+
+[project.scripts]
+alpha-factor = "alpha_factor_engine.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+addopts = "-q"

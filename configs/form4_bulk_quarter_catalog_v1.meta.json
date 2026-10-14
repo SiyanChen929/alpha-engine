@@ -1,0 +1,14 @@
+{
+  "schema_version": "sec_form4_bulk_quarter_catalog_metadata_v1",
+  "observed_at": "2026-09-03T05:35:00-04:00",
+  "landing_page": "https://www.sec.gov/data-research/sec-markets-data/insider-transactions-data-sets",
+  "landing_page_stated_coverage": "January 2006 - June 2026",
+  "landing_page_last_reviewed_or_updated": "2026-06-30",
+  "included_start_quarter": "2020q1",
+  "included_end_quarter": "2025q4",
+  "quarter_count": 24,
+  "construction": "semantic projection of quarter labels, link targets, and displayed sizes from the official SEC landing page",
+  "transport_note": "this catalog is a download plan, not retained byte-identical HTML; verify the live official page before each download",
+  "research_status": "NOT VALIDATED",
+  "alpha_claim_permitted": false
+}

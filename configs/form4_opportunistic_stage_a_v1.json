@@ -1,0 +1,186 @@
+{
+  "schema_version": "form4_opportunistic_stage_a_protocol_v1",
+  "protocol_authored_at": "2026-09-03T16:16:26+00:00",
+  "experiment": {
+    "name": "form4_opportunistic_purchase_stage_a_v1",
+    "purpose": "low_cost_development_period_kill_test_before_exact_clock_and_security_lineage_investment",
+    "research_status": "PRE_OUTCOME_DESIGN_READY",
+    "historical_alpha_claim_permitted": false,
+    "model_alpha_claim_permitted": false,
+    "deployment_permitted": false,
+    "selection_or_tuning_after_outcome": false,
+    "preserve_2025_return_outcomes_uncomputed": true,
+    "reason": "The 2023-2024 development period is used once to decide whether the insider-information sleeve merits exact SEC clocks and permanent-security engineering. No 2025 Form 4 event return may be computed by this protocol."
+  },
+  "sources": {
+    "candidate_accessions": {
+      "path": "artifacts/form4_event_alpha_v1/candidate_preregistration_2020q1_2025q4_v2/candidate_accessions.parquet",
+      "bytes": 1636739,
+      "sha256": "909b2d6bec4c293481f4f03e71490fac21d3da4a2ad17b862717b28bb4f549b4",
+      "upstream_manifest_path": "artifacts/form4_event_alpha_v1/candidate_preregistration_2020q1_2025q4_v2/artifact_manifest.json",
+      "upstream_manifest_bytes": 16002,
+      "upstream_manifest_sha256": "5b184e5878c1945da5edba6a1abdd7551f13f6fdcc1ddc3d15f1beebe4ee42f3",
+      "limitation": "SEC bulk flattened as-filed data; candidate census protocol followed candidate counts and therefore is not a valid preregistration."
+    },
+    "sec_dataset_documentation": "https://www.sec.gov/data-research/sec-markets-data/insider-transactions-data-sets",
+    "sec_form4_instructions": "https://www.sec.gov/about/forms/form4data.pdf",
+    "mechanism_prior": "https://www.nber.org/papers/w16454",
+    "modern_deployability_prior": "https://doi.org/10.1016/j.frl.2024.106514",
+    "price_provider": {
+      "name": "Yahoo Finance chart API",
+      "adapter_path": "src/alpha_factor_engine/data/yahoo.py",
+      "adapter_sha256_at_protocol_authoring": "0aee1cdc296b30c7510e62b4c7a0707a018b1ff1980e06402bb0349a4a5cf663",
+      "start": "2021-01-01",
+      "end": "2025-02-28",
+      "interval": "1d",
+      "adjustment": "vendor adjusted close and derived adjusted open",
+      "finality": "confirmed_historical",
+      "cache_raw_payload": true,
+      "fresh_network_retrieval_after_design_freeze": true,
+      "limitation": "Retrospectively adjusted current-ticker histories are not a permanent-security master and do not contain complete delisting payoff lineage."
+    }
+  },
+  "candidate_selection": {
+    "filing_date_gte": "2023-04-01",
+    "filing_date_lt": "2025-01-01",
+    "forbidden_event_filing_date_gte": "2025-01-01",
+    "required_preclock_evaluation_candidate": true,
+    "primary_class": "opportunistic",
+    "negative_control_class": "routine",
+    "classification_column": "provisional_event_classification",
+    "owner_classification_clock": "January 1 label built only from trades in the prior three complete calendar years whose filing-date EOD proxy was already public by that January 1",
+    "required_signal_type": "form4_code_p_purchase_candidate",
+    "minimum_direct_purchase_usd": 25000,
+    "require_timeliness_eligible": true,
+    "require_aff10b5_eligible": true,
+    "primary_ownership": "direct_only",
+    "ticker_regex": "^[A-Z][A-Z0-9]{0,9}(?:\\.[A-Z][A-Z0-9]{0,2})?$",
+    "ambiguous_ticker_tokens": [",", ";", "/", " ", "-"],
+    "excluded_ticker_values": ["", "NONE", "N/A", "NA"],
+    "yahoo_alias_rule": "replace_period_with_hyphen",
+    "same_ticker_entry_session_policy": "collapse accession rows and sum disclosed direct purchase value",
+    "overlapping_signal_policy": "within each event class, retain the earliest entry and ignore later same-ticker signals whose entry is on or before the retained event exit",
+    "cross_class_same_ticker_entry_policy": "exclude both classes before any outcome lookup",
+    "post_result_filters_permitted": false,
+    "signal_label_limitation": "Form 4 code P includes exchange and private purchases."
+  },
+  "clock_and_execution": {
+    "historical_clock_proxy": "SEC filing calendar date only",
+    "quarantine_rule": "quarantine the first observed SPY regular session whose calendar date is strictly after filing_date",
+    "entry_rule": "enter at the next observed SPY regular-session open after the quarantined session, i.e. the second SPY open strictly after filing_date",
+    "exit_rule": "exit at the SPY regular-session open 20 sessions after entry",
+    "holding_period_sessions": 20,
+    "benchmark_calendar": "SPY observed adjusted-open sessions; no fabricated or forward-filled sessions",
+    "benchmark_open_timestamp_rule": "09:30 America/New_York",
+    "clock_claim": "conservative filing-date proxy only; no historical first-public timestamp claim",
+    "missing_clock_or_price_policy": "exclude and report; fail the coverage gate"
+  },
+  "universe": {
+    "minimum_entry_prior_price_usd": null,
+    "nominal_price_filter_reason": "Yahoo historical Close is retrospectively split-adjusted, so a nominal historical price cutoff could use future corporate actions; Stage A relies on the dollar-volume screen instead",
+    "adv_window_sessions": 63,
+    "adv_statistic": "median",
+    "minimum_entry_prior_adv_usd": 20000000.0,
+    "minimum_prior_stock_sessions": 252,
+    "all_liquidity_observation_dates_end_before_entry": true,
+    "vendor_historical_values_may_be_retroactively_adjusted": true,
+    "permanent_security_identifier_available": false,
+    "complete_delisting_payoff_available": false,
+    "current_ticker_survivor_proxy": true
+  },
+  "risk_adjustment": {
+    "beta_return_field": "adjusted_open_to_adjusted_open_daily_return",
+    "beta_window_matched_sessions": 252,
+    "beta_window_end_rule": "use the 252 matched daily returns ending at the placebo start session, so beta estimation does not consume any return inside the pre-event placebo interval",
+    "minimum_matched_beta_observations": 200,
+    "beta_formula": "sample_covariance(stock_return, SPY_return) / sample_variance(SPY_return)",
+    "intercept": true,
+    "winsorization": false,
+    "beta_cap": null,
+    "gross_normalization": "stock_weight=1/(1+abs(beta)); benchmark_weight=-beta/(1+abs(beta))"
+  },
+  "estimands": {
+    "gross_hedged_return": "stock_weight*stock_open_to_open_return + benchmark_weight*SPY_open_to_open_return",
+    "primary_cost_bps_one_way_per_traded_dollar": 30,
+    "stress_cost_bps_one_way_per_traded_dollar": 50,
+    "cost_formula": "one_way_rate * (abs(stock_weight)+abs(benchmark_weight)+abs(stock_weight*(1+stock_return))+abs(benchmark_weight*(1+SPY_return)))",
+    "primary_net_return": "gross_hedged_return minus exact entry_and_exit_traded_notional_cost_at_30bps",
+    "stress_net_return": "gross_hedged_return minus exact entry_and_exit_traded_notional_cost_at_50bps",
+    "costs_not_modeled": ["financing", "SPY short borrow", "stock loan", "participation impact"],
+    "pre_event_placebo": "20-session beta-hedged adjusted-open return ending at the last observed SPY open strictly before filing_date; gross only",
+    "aggregation": "equal weight within entry session and equal weight across ordered entry sessions",
+    "portfolio_claim": false,
+    "causal_claim": false
+  },
+  "inference": {
+    "date_level_hac_lags": 20,
+    "inference_unit": "HAC uses actual SPY session-index distance; circular MBB uses ordered nonempty entry-date observations as a non-decision sensitivity",
+    "circular_moving_block_draws": 10000,
+    "circular_moving_block_length_entry_dates": 20,
+    "bootstrap_seed": 929,
+    "bootstrap_null": "center ordered entry-session returns before circular all-start block resampling",
+    "primary_alternative": "opportunistic_primary_net_mean_greater_than_zero",
+    "mechanism_control": "paired common-entry-date opportunistic net mean minus routine net mean greater than zero",
+    "minimum_common_entry_dates_for_mechanism": 30,
+    "multiple_testing_method": "known_disclosed_trial_floor_screen_only_not_FWER",
+    "prior_disclosed_trial_floor_after_bootstrap_repair": 120,
+    "tests_added_here": [
+      "opportunistic_net_30bps_mean_20_sessions",
+      "opportunistic_minus_routine_net_30bps_mean_20_sessions",
+      "opportunistic_signed_pre_event_placebo_20_sessions",
+      "opportunistic_net_50bps_mean_20_sessions"
+    ],
+    "tests_added_count": 4,
+    "resulting_disclosed_trial_floor": 124,
+    "all_generated_or_repaired_variants_count_as_trials": true,
+    "family_wise_error_control_established": false,
+    "interpretation": "Multiplying by 124 is a strict screening hurdle across at least 124 disclosed trials; because 124 is a lower bound rather than a complete family size, it is not a Bonferroni FWER claim. The circular MBB is reported as a non-decision sensitivity because its 20-row blocks are observation blocks rather than SPY-session blocks."
+  },
+  "stop_gates": {
+    "sample": {
+      "minimum_usable_opportunistic_events": 100,
+      "minimum_usable_opportunistic_tickers": 50,
+      "minimum_opportunistic_entry_sessions": 80,
+      "minimum_common_entry_dates_for_mechanism": 30,
+      "minimum_candidate_ticker_mapping_coverage": 0.95,
+      "minimum_benchmark_clock_coverage": 1.0,
+      "minimum_scheduled_opportunistic_event_price_path_coverage": 0.8,
+      "minimum_scheduled_routine_event_price_path_coverage": 0.8,
+      "coverage_denominator": "unique frozen schedule_id values after overlap and cross-class conflict suppression; low-ADV eligibility exclusions count as path-complete; benchmark clock failures are measured separately against selected opportunistic candidate rows"
+    },
+    "integrity": {
+      "input_hashes_and_freeze_receipt_match": true,
+      "no_2025_event_outcome_rows": true,
+      "entry_is_second_spy_open_strictly_after_filing_date": true,
+      "exit_is_20_spy_sessions_after_entry": true,
+      "all_beta_and_liquidity_observation_dates_precede_entry": true,
+      "all_retained_outcome_fields_finite": true,
+      "permanent_security_identifier_coverage_required_for_historical_validation": 1.0,
+      "delisting_payoff_coverage_required_for_historical_validation": 1.0
+    },
+    "efficacy": {
+      "primary_net_mean": "greater_than_zero",
+      "primary_hac_t": "greater_than_or_equal_to_known_trial_floor_screening_critical_value",
+      "primary_known_trial_floor_adjusted_screening_p": "less_than_or_equal_to_0.05",
+      "circular_mbb_role": "reported_non_decision_sensitivity",
+      "stress_50bps_net_mean": "greater_than_zero",
+      "opportunistic_point_estimate_minus_routine": "greater_than_zero",
+      "pre_event_placebo_falsification": "fail only when mean is positive and raw one-sided HAC p is less than or equal to 0.05; non-rejection does not prove no pre-trend"
+    },
+    "concentration": {
+      "maximum_single_ticker_gross_absolute_contribution_share": 0.1,
+      "contribution_formula": "for each opportunistic event, take the absolute value of net_return divided by event_count_on_entry_date and number_of_opportunistic_entry_dates; sum these gross absolute contributions by ticker and divide by the total",
+      "minimum_leave_one_ticker_out_net30_mean": "greater_than_zero",
+      "absolute_stock_or_spy_horizon_return_over_100pct": 0
+    },
+    "decision": "Any primary, stress, placebo, coverage, or concentration failure retires this Stage A proxy without threshold, horizon, class, liquidity, beta, or weighting repair. Passing only authorizes exact-clock and permanent-security Stage B work."
+  },
+  "outputs": {
+    "runtime_config_path": "configs/form4_opportunistic_stage_a_v1_runtime.json",
+    "design_receipt_path": "artifacts/form4_opportunistic_stage_a_v1/design_receipt.json",
+    "acquisition_directory": "artifacts/form4_opportunistic_stage_a_v1/acquisition",
+    "run_directory": "artifacts/form4_opportunistic_stage_a_v1/run",
+    "freeze_receipt_path": "artifacts/form4_opportunistic_stage_a_v1/freeze_receipt.json",
+    "scheduled_event_coverage_ledger": "artifacts/form4_opportunistic_stage_a_v1/run/scheduled_event_coverage.csv"
+  }
+}

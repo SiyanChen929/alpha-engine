@@ -1,0 +1,52 @@
+{
+  "schema_version": "sec_reporting_lag_tradable_stage_b_protocol_v1",
+  "experiment_id": "sec_reporting_lag_tradable_stage_b_v1",
+  "authored_at": "2026-09-04T10:20:00-04:00",
+  "status": "PRE_RUN_POST_OUTCOME_METHOD_REPAIR",
+  "research_role": "POST_OUTCOME_DIAGNOSTIC_NO_CONFIRMATORY_CLAIM",
+  "historical_alpha_verdict": "INVALID",
+  "model_alpha_verdict": "NOT VALIDATED",
+  "deployment_verdict": "NOT AUTHORIZED",
+  "method_repair": "Apply backward-only price, history, and ADV eligibility before reporting-lag quintile assignment.",
+  "source_boundaries": {
+    "mapped_sec_headers": "artifacts/sec_filing_change_stage_a_v1/preoutcome_plan_v3/mapped_header_inventory.parquet",
+    "universe": "artifacts/public_broad_proxy_v1/data/frozen_proxy_universe.csv",
+    "expected_universe_names": 1500,
+    "price_panel": "artifacts/public_broad_proxy_v1/data/daily_prices.parquet",
+    "exchange_calendar": "artifacts/reference_calendars/xnys_v1/xnys_regular_sessions_2014_2028.csv",
+    "universe_status": "CURRENT_SURVIVOR_PROXY_NOT_PIT"
+  },
+  "signal_definition": {
+    "form": "10-K",
+    "minimum_reporting_lag_days": 20,
+    "maximum_reporting_lag_days": 120,
+    "maximum_signal_age_days": 400,
+    "minimum_prior_close": 5.0,
+    "minimum_prior_stock_sessions": 252,
+    "adv_window_sessions": 63,
+    "minimum_trailing_adv_usd": 20000000,
+    "entry": "second regular XNYS open of formation month",
+    "exit": "second regular XNYS open of following month",
+    "portfolio": "100 percent NAV long fastest quintile and 100 percent NAV short slowest quintile",
+    "primary_cost_bps_one_way": 30,
+    "stress_cost_bps_one_way": 50
+  },
+  "cohorts": {
+    "development": {"formation_month_start": "2019-02", "formation_month_end": "2021-12"},
+    "opened_diagnostic": {"formation_month_start": "2022-01", "formation_month_end": "2024-12"},
+    "sealed_2025": {"formation_month_start": "2025-01", "formation_month_end": "2025-12"}
+  },
+  "multiplicity": {
+    "current_disclosed_trial_floor": 133,
+    "inference_permitted": false,
+    "reason": "The design repair was chosen after observing Stage A outcomes; all output is descriptive."
+  },
+  "hard_claim_limits": [
+    "This is a post-outcome method-repair diagnostic, not an independent confirmation.",
+    "The universe is selected from 2026 survivors and lacks permanent security identities and delisting returns.",
+    "Historical accelerated-filer status and contemporaneous market capitalization are unavailable.",
+    "Yahoo adjusted opens and dollar volume are retrospective proxies.",
+    "Borrow, financing and TAQ impact are absent.",
+    "No 2025 signal outcome may be joined."
+  ]
+}

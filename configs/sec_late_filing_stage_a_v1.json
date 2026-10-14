@@ -1,0 +1,109 @@
+{
+  "schema_version": "sec_late_filing_stage_a_protocol_v1",
+  "experiment_id": "sec_late_filing_stage_a_v1",
+  "authored_at": "2026-09-03T23:35:00-04:00",
+  "status": "PRE_OUTCOME_DESIGN",
+  "historical_alpha_verdict": "INVALID",
+  "model_alpha_verdict": "NOT VALIDATED",
+  "deployment_verdict": "NOT AUTHORIZED",
+  "economic_hypothesis": "An exact SEC Form NT 10-K or NT 10-Q acceptance is a public signal that the registrant cannot file its periodic report on time. A short-stock, long-SPY pair entered after public acceptance may capture delayed incorporation of adverse reporting-quality and operating information.",
+  "source_boundaries": {
+    "universe": "artifacts/public_broad_proxy_v1/data/frozen_proxy_universe.csv",
+    "expected_universe_names": 1500,
+    "sec_raw_manifest": "artifacts/sec_periodic_filing_inventory_v1/raw_manifest.json",
+    "sec_cache": "data/cache/sec",
+    "price_panel": "artifacts/public_broad_proxy_v1/data/daily_prices.parquet",
+    "universe_status": "CURRENT_SURVIVOR_PROXY_NOT_PIT",
+    "outcome_access_during_plan": false
+  },
+  "event_definition": {
+    "forms": [
+      "NT 10-K",
+      "NT 10-Q"
+    ],
+    "minimum_filing_date": "2018-01-01",
+    "maximum_filing_date": "2025-12-31",
+    "acceptance_clock": "SEC submissions acceptanceDateTime parsed as exact UTC",
+    "decision_lag_minutes": 3,
+    "entry": "first regular XNYS open strictly after acceptance_at plus decision lag",
+    "exit": "regular XNYS open 20 sessions after entry",
+    "position": "50 percent short issuer and 50 percent long SPY per unit gross exposure",
+    "ticker_tie_break": "ticker ascending",
+    "form_report_lag_bounds_days": {
+      "NT 10-K": [
+        45,
+        110
+      ],
+      "NT 10-Q": [
+        25,
+        65
+      ]
+    },
+    "same_ticker_overlap_policy": "keep earliest accepted event and suppress later events until the prior 20-session holding interval exits",
+    "same_entry_date_weighting": "equal capital across all eligible events entering on that date",
+    "cost_bps_one_way": [
+      30,
+      50
+    ],
+    "primary_cost_bps_one_way": 30,
+    "cost_model": "first-order traded-notional overlay on both pair legs, including entry and exit drift",
+    "liquidity_measure": "median dollar_volume over the 20 benchmark sessions ending one session before entry",
+    "minimum_trailing_adv_usd": 5000000,
+    "portfolio_aum_usd": 10000000,
+    "borrow_cost": "omitted and therefore a deployment blocker"
+  },
+  "cohorts": {
+    "development": {
+      "release_years_et": [
+        2018,
+        2019,
+        2020,
+        2021
+      ],
+      "outcome_role": "opened_descriptive_only"
+    },
+    "confirmation": {
+      "release_years_et": [
+        2022,
+        2023,
+        2024
+      ],
+      "outcome_role": "single_frozen_primary_test"
+    },
+    "sealed_2025": {
+      "release_years_et": [
+        2025
+      ],
+      "outcome_role": "signal_only_outcome_join_forbidden"
+    }
+  },
+  "formal_tests": {
+    "primary": "confirmation combined-form equal-entry-date mean pair net return at 30 bps one-way",
+    "stress": "confirmation combined-form equal-entry-date mean pair net return at 50 bps one-way",
+    "falsification": "confirmation signed pre-event 20-session pair return and post-minus-pre mean",
+    "inference": "Newey-West on entry-date portfolio returns with lag 3; centered circular moving-block bootstrap as sensitivity",
+    "current_disclosed_trial_floor": 131,
+    "multiplicity": "Bonferroni screen using at least the disclosed global trial floor"
+  },
+  "confirmation_gates": {
+    "minimum_events": 60,
+    "minimum_tickers": 30,
+    "minimum_entry_dates": 24,
+    "minimum_price_path_coverage": 0.8,
+    "primary_net_mean_minimum": 0.0,
+    "primary_newey_west_t_minimum": 3.0,
+    "global_adjusted_p_maximum": 0.05,
+    "stress_net_mean_minimum": 0.0,
+    "post_minus_pre_mean_minimum": 0.0,
+    "maximum_ticker_gross_contribution_share": 0.15,
+    "minimum_leave_one_ticker_out_mean": 0.0,
+    "maximum_trade_to_trailing_adv_at_10m": 0.01
+  },
+  "hard_claim_limits": [
+    "The historical universe is selected from 2026 survivors and lacks delisting returns and permanent security identifiers.",
+    "SEC API acceptance timestamps have not yet been reconciled to raw accession SGML headers.",
+    "Yahoo adjusted opens are not execution-grade quotes and may be retrospectively revised.",
+    "Historical stock-loan fees, locate availability, recall, financing and TAQ impact are absent.",
+    "The 2025 cohort must remain signal-only until a separately frozen reveal decision."
+  ]
+}

@@ -1,0 +1,31 @@
+snapshot:
+  name: prospective_pit_universe_v1
+  freeze_at: "2026-09-03T08:24:00Z"
+  cutoff_date: "2026-08-31"
+  scope: prospective_only_from_freeze_at
+
+inputs:
+  sec_cache: data/cache/sec/company_tickers.json.gz
+  yahoo_cache_dir: data/cache/yahoo_proxy
+  yahoo_start: "2014-01-01"
+  yahoo_end: "2026-08-31"
+
+screens:
+  candidate_count: 2500
+  minimum_members: 1000
+  maximum_members: 4000
+  minimum_price: 5.0
+  minimum_adv_usd_63d: 5000000.0
+  minimum_price_observations: 63
+  instrument_type: EQUITY
+  currency: USD
+  allowed_exchange_codes: [NYQ, NMS, NGM, NCM, ASE]
+
+claim_limits:
+  permitted:
+    - prospective_membership_observation_after_freeze_at
+  prohibited:
+    - survivorship_free_historical_universe
+    - permanent_security_lineage
+    - delisting_complete_backtest
+    - production_deployment

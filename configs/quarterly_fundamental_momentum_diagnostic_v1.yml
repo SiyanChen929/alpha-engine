@@ -1,0 +1,66 @@
+strategy_version: quarterly_fundamental_momentum_diagnostic_v1
+research_classification: opened_current_survivor_diagnostic_only
+research_cutoff: '2026-09-03'
+
+source:
+  monthly_panel: artifacts/liquid_residual_momentum_v2/evaluation_universe_panel.parquet
+  expected_monthly_panel_sha256: e582d1d2c6b096cc9184bef590457e1d59b899b7dba4f1529d30e8d3eb238a6b
+  expected_rows: 76254
+  expected_months: 90
+  expected_current_tickers: 1321
+  current_universe_mapping: artifacts/public_broad_proxy_v1/data/frozen_proxy_universe.csv
+  expected_universe_mapping_sha256: 53321ab3a4e047d5de81affe5edc634eaffd803c1ea1d72c2ea57fe627eaea7f
+  companyfacts_cache: data/cache/sec/companyfacts
+  submissions_cache: data/cache/sec/submissions
+
+clock:
+  exact_preference: SEC submissions acceptanceDateTime for matching accession
+  conservative_fallback: end of SEC filed calendar date in America/New_York
+  maximum_feature_age_days: 180
+
+features:
+  primary: quarterly_fundamental_momentum_score
+  primary_components:
+    - earnings_change_on_assets
+    - sales_growth_yoy
+  secondary:
+    - gross_margin_change_yoy
+  directions:
+    quarterly_fundamental_momentum_score: 1
+    earnings_change_on_assets: 1
+    sales_growth_yoy: 1
+    gross_margin_change_yoy: 1
+  construction: primary is the equal-weight mean of contemporaneous cross-sectional percentile ranks of its two components
+  duration_days_minimum: 70
+  duration_days_maximum: 120
+  comparator_gap_days_minimum: 250
+  comparator_gap_days_maximum: 470
+
+evaluation:
+  primary_period: pre_2026
+  reporting_only_period: 2026_h1
+  minimum_names_per_month: 50
+  controls:
+    - exact_total_momentum_12_1
+    - reversal_1m
+    - beta_12m
+    - realized_vol_3m
+    - illiquidity_3m
+    - log_market_cap
+  deciles: 10
+  monthly_weighting: equal
+  search_family_tests_added: 4
+  p_values: one-sided positive-direction HAC normal approximation
+  multiple_testing: Benjamini-Hochberg over the four disclosed feature tests
+
+gates:
+  mean_incremental_rank_ic_minimum: 0.0
+  incremental_ic_hac_tstat_minimum: 2.0
+  bh_qvalue_maximum: 0.05
+  positive_year_fraction_minimum: 0.60
+  upstream_survivorship_free_required: true
+  permanent_security_identifier_required: true
+  complete_delisting_returns_required: true
+
+outputs:
+  directory: artifacts/quarterly_fundamental_momentum_diagnostic_v1

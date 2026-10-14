@@ -1,0 +1,90 @@
+strategy_version: quarterly_fundamental_momentum_diagnostic_v2
+research_classification: opened_current_survivor_measurement_diagnostic_only
+research_cutoff: '2026-09-03'
+preregistration: artifacts/quarterly_fundamental_momentum_diagnostic_v2_preregistration.json
+
+source:
+  monthly_panel: artifacts/liquid_residual_momentum_v2/evaluation_universe_panel.parquet
+  expected_monthly_panel_sha256: e582d1d2c6b096cc9184bef590457e1d59b899b7dba4f1529d30e8d3eb238a6b
+  expected_rows: 76254
+  expected_months: 90
+  expected_current_tickers: 1321
+  current_universe_mapping: artifacts/public_broad_proxy_v1/data/frozen_proxy_universe.csv
+  expected_universe_mapping_sha256: 53321ab3a4e047d5de81affe5edc634eaffd803c1ea1d72c2ea57fe627eaea7f
+  companyfacts_cache: data/cache/sec/companyfacts
+  submissions_cache: data/cache/sec/submissions
+  submissions_archive_cache: data/cache/sec/submissions_archive
+  filing_inventory_receipt: artifacts/sec_periodic_filing_inventory_v1/issuer_inventory_receipt.csv
+  expected_filing_inventory_receipt_sha256: 020ce2200a963284a9771d323e8d95054f3278a6ccc9f6870c72c2f444703936
+  filing_inventory_raw_manifest: artifacts/sec_periodic_filing_inventory_v1/raw_manifest.json
+  expected_filing_inventory_raw_manifest_sha256: 5ed4b3501094e673731729b94f1a58fec0a979a70750b54350a2040155d880b9
+  filing_inventory_start: '2018-01-01'
+  strict_header_inventory_required: true
+
+clock:
+  exact_preference: SEC submissions acceptanceDateTime plus frozen 3-minute propagation delay
+  conservative_fallback: end of SEC filed calendar date in America/New_York
+  operational_latency_minutes_before_entry: 30
+  strict_public_before_decision: true
+  maximum_feature_age_days: 180
+
+features:
+  primary: quarterly_fundamental_momentum_score
+  primary_components:
+    - earnings_change_on_assets
+    - sales_growth_yoy
+  secondary_descriptive_only:
+    - gross_margin_change_yoy
+  construction: equal-weight mean of component percentile ranks computed only on their common complete issuer intersection
+  same_xbrl_tag_and_unit_required: true
+  companyfacts_context_claim: compatible-context only; raw contextRef is absent
+  duration_days:
+    quarter: [70, 120]
+    q3_ytd: [230, 310]
+    annual: [350, 380]
+  yoy_start_end_gap_days: [350, 380]
+  maximum_comparative_duration_difference_days: 8
+  maximum_q4_duration_difference_days: 5
+  annual_q3_start_tolerance_days: 1
+  q3_to_year_end_days: [70, 120]
+  fact_end_must_equal_fiscal_end: true
+  q4_method_priority:
+    - direct current and prior Q4 in the same 10-K accession
+    - annual-minus-nine-month current and prior legs in the same 10-K accession
+  cross_accession_q4_derivation: excluded until a raw-XBRL retrospective-scope guard exists
+  missing_new_filing_behavior: explicit null fiscal-state barrier
+
+evaluation:
+  primary_period: pre_2026
+  reporting_only_period: 2026_h1
+  minimum_names_per_month: 50
+  controls:
+    - exact_total_momentum_12_1
+    - reversal_1m
+    - beta_12m
+    - realized_vol_3m
+    - illiquidity_3m
+    - log_market_cap
+  deciles: 10
+  monthly_weighting: equal issuer weight
+  representative_security: highest lagged ADV then ticker
+  primary_tests_added: 1
+  prior_global_trial_floor: 109
+  resulting_global_trial_floor: 110
+  p_values: one-sided positive-direction HAC normal approximation
+  multiple_testing: global Bonferroni against disclosed floor of 110; no historical discovery claim
+
+gates:
+  measurement_header_inventory_complete_required: true
+  raw_xbrl_context_reconciliation_required_for_exact_context_claim: true
+  mean_incremental_rank_ic_minimum: 0.0
+  incremental_ic_hac_tstat_minimum: 2.0
+  global_adjusted_pvalue_maximum: 0.05
+  positive_year_fraction_minimum: 0.60
+  upstream_survivorship_free_required: true
+  permanent_security_identifier_required: true
+  complete_delisting_returns_required: true
+  costs_capacity_borrow_required_for_portfolio: true
+
+outputs:
+  directory: artifacts/quarterly_fundamental_momentum_diagnostic_v2

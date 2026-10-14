@@ -1,0 +1,180 @@
+schema_version: form4_event_preregistration_v2
+experiment:
+  name: opportunistic_direct_code_p_purchase_2025_holdout
+  status: return_blind_preregistered_not_validated
+  signal_label: form4_code_p_purchase_candidate
+  warning: SEC code P includes purchases on an exchange or from another person
+  performance_claim_permitted: false
+
+source_panel:
+  quarter_start: 2020q1
+  quarter_end: 2025q4
+  inventory: artifacts/form4_event_alpha_v1/bulk_history_2020q1_2025q4_v1/quarter_inventory.csv
+  upstream_manifest: artifacts/form4_event_alpha_v1/bulk_history_2020q1_2025q4_v1/artifact_manifest.json
+  require_24_unique_content_addressed_archives: true
+
+candidate_filter:
+  document_type: "4"
+  amendment_policy: retain_raw_never_create_event_never_retroactively_select_original
+  table: NONDERIV_TRANS
+  transaction_form_type: "4"
+  transaction_code: P
+  acquired_disposed_code: A
+  require_explicit_equity_swap_false: true
+  require_positive_shares_and_price: true
+  qualifying_owner_regex: officer|director
+  include_security_regex: common|ordinary
+  exclude_security_regex: preferred|warrant|option|phantom|restricted|unit|depositary|convertible|right
+  primary_ownership: direct_only
+  indirect_ownership_policy: retain_audit_amount_exclude_primary
+  minimum_direct_purchase_usd: 25000
+  maximum_filing_lag_calendar_days: 5
+  late_flag_policy: exclude_primary
+  aff10b5_effective_date: 2023-04-01
+  aff10b5_primary_policy: require_explicit_false_after_effective_date
+  pre_effective_period_policy: owner_history_only
+  deduplication_key: ACCESSION_NUMBER
+  transaction_deduplication_key: ACCESSION_NUMBER|NONDERIV_TRANS_SK
+  cross_quarter_duplicate_policy: fail
+  joint_filing_event_label:
+    opportunistic: all_qualifying_owners_opportunistic
+    routine: all_qualifying_owners_routine
+    unclassified: any_owner_unclassified
+    mixed: otherwise
+
+owner_classification:
+  method: cohen_malloy_pomorski_same_calendar_month
+  lookback_complete_calendar_years: 3
+  classification_cutoff: january_1
+  history_signal: direct_common_code_p_positive_purchase
+  minimum_history_trade_value: 0
+  incomplete_history_label: unclassified
+  provisional_clock: filing_date_end_of_day_america_new_york
+  final_clock: exact_public_information_at_required
+
+sample_split:
+  history_only_start: 2020-01-01
+  development_start: 2023-04-01
+  development_end: 2024-12-31
+  frozen_holdout_start: 2025-01-01
+  frozen_holdout_end: 2025-12-31
+  holdout_reveal_count: 1
+  failed_holdout_policy: retire_sleeve_no_2025_retuning
+
+clock:
+  raw_acceptance_source: raw_complete_submission_sgml
+  raw_field: <ACCEPTANCE-DATETIME>
+  json_acceptance_policy: crosscheck_only
+  daily_public_source: earliest_cross_quarter_archived_daily_master_containing_accession
+  daily_public_timestamp: http_last_modified
+  information_at: max(raw_sgml_acceptance_at,earliest_daily_master_last_modified_at)
+  entry: first_regular_session_open_strictly_after_information_at
+  daily_search_business_days_after: 10
+  search_extension_policy: extend_until_found_or_fail_closed
+  require_bytes_sha256_etag_last_modified_retrieved_at: true
+  missing_or_conflicting_clock_policy: fail
+
+security_mapping:
+  identity: permanent_security_id_not_ticker
+  required_fields:
+    - permanent_security_id
+    - issuer_cik
+    - share_class_id
+    - ticker
+    - exchange
+    - security_type
+    - valid_from
+    - valid_to
+    - known_at
+  valid_at: information_at
+  allowed_common_share_codes: [10, 11]
+  one_security_per_event: true
+  ambiguity_policy: fail
+  require_corporate_actions: true
+  require_delisting_complete_returns: true
+  ticker_policy: display_and_crosscheck_only
+
+universe:
+  contemporaneous_liquidity_rank_maximum: 1000
+  minimum_price_usd: 5
+  minimum_adv_63d_usd: 20000000
+  require_252_session_history: true
+
+matched_controls:
+  controls_per_event: 3
+  exact_fields: [entry_session, sic2]
+  industry_fallback: false
+  distance_features:
+    - log_market_cap
+    - log_adv_63d
+    - residual_momentum_12_1
+    - beta_12m
+    - idio_vol_12m
+  transform: within_entry_session_rank_then_euclidean
+  feature_availability: available_at_lte_information_at
+  exclude_event_issuer: true
+  exclude_any_issuer_with_signal_known_by_information_at: true
+  future_event_exclusion: false
+  fewer_than_three_controls_policy: exclude_event
+
+outcomes:
+  primary:
+    cohort: 2025_opportunistic_direct_code_p
+    estimand: equal_weight_matched_abnormal_open_to_open_return
+    horizon_sessions: 20
+    cost_bps_one_way_each_traded_leg: 30
+  secondary_horizons_sessions: [5, 60]
+  returns_open_rule: confirmed_regular_session_open
+  corporate_action_adjustment: point_in_time_total_return_lineage
+  missing_exit_or_delisting_policy: fail
+  overlapping_position_policy: ignore_new_signal_until_prior_exit
+
+costs_capacity:
+  one_way_cost_sensitivities_bps: [15, 30, 50]
+  control_short_borrow: actual_point_in_time_fee_and_availability_required
+  financing: actual_or_conservative_frozen_schedule_required
+  portfolio_aum_usd: [2000000, 5000000, 10000000]
+  maximum_adv_participation: 0.02
+
+inference:
+  unit: event_clustered_by_issuer_and_entry_session
+  conditional_random_event_nulls: 200
+  null_seed: 929
+  null_strata: [entry_session, sic2, liquidity_quintile]
+  preserve_event_count_and_date_clustering: true
+  pre_event_placebo_window_sessions: [-20, -1]
+  primary_direction: greater_than_zero
+  familywise_method: romano_wolf_stepdown
+  global_trial_ledger_required: true
+  conservative_preexisting_trial_floor: 110
+  registered_form4_primary_trials: 1
+  conservative_bonferroni_denominator_floor: 111
+  all_generated_or_repaired_candidates_count_as_trials: true
+
+stop_gates:
+  data:
+    bulk_archives_verified: 24_of_24
+    exact_clock_coverage: 1.0
+    permanent_security_mapping_coverage: 1.0
+    mapping_ambiguities: 0
+    delisting_and_action_coverage: 1.0
+    matched_controls_per_event: 3
+  sample:
+    minimum_holdout_events: 100
+    minimum_holdout_issuers: 30
+  efficacy:
+    primary_net_abnormal_mean: greater_than_zero
+    two_way_clustered_95pct_ci_lower: greater_than_zero
+    romano_wolf_adjusted_p: less_than_or_equal_0.05
+    conditional_null_empirical_p: less_than_or_equal_0.05
+    global_bonferroni_threshold: 0.05_divided_by_at_least_111
+    placebo: economically_small_and_not_positive
+  deployability:
+    positive_at_30bps_one_way_each_leg: true
+    point_in_time_borrow_coverage_if_short_controls: 1.0
+    positive_at_5000000_aum_and_2pct_adv: true
+    no_single_issuer_or_sic2_drives_conclusion: true
+  failure_policy: stop_without_return_claim
+
+outputs:
+  directory: artifacts/form4_event_alpha_v1/candidate_preregistration_2020q1_2025q4_v2

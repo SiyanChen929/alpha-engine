@@ -1,0 +1,114 @@
+research:
+  name: champion_challenger_v1
+  source_panel: artifacts/public_research/data/monthly_feature_panel.parquet
+  source_daily_prices: artifacts/public_research/data/daily_prices.parquet
+  benchmark_ticker: SPY
+  evaluation_entry_at_or_after: "2019-01-01T00:00:00-05:00"
+  evaluation_exit_at_or_before: "2026-06-01T16:00:00-04:00"
+  opened_period_end: "2026-08-31"
+  evidence_status: opened_diagnostic
+  output_dir: artifacts/champion_challenger
+  seed: 929
+
+reporting:
+  champion: momentum_12_1_top6
+  annualization_factor: 12
+
+universe:
+  # The public panel begins from current tickers, so this mode can produce
+  # diagnostics but can never pass the production data gate.  A production
+  # run must switch to crsp_pit and provide a permanent-ID panel.
+  mode: public_current_ticker_proxy
+  source: dynamic_top30_from_current_ticker_proxy
+  ranking_column: log_market_cap
+  top_n: 30
+  minimum_cross_section: 20
+  permanent_id_column: permno
+  production_mode: crsp_pit
+
+signal:
+  decision_time_et: "20:00"
+  score_column: momentum_12_1
+  # Match the attached paper's displayed P[t-21] / P[t-253] - 1 equation.
+  formation_sessions: 253
+  skip_sessions: 21
+  endpoint_definition: paper_p_t_minus_21_over_p_t_minus_253_minus_1
+  holdings: 6
+  weighting: equal
+  tie_break_column: ticker
+  entry: next_session_open
+  exit: next_rebalance_open
+
+costs:
+  trading_cost_bps_one_way: 15
+  sensitivity_bps: [15, 25, 30, 50]
+  portfolio_aum_usd: 10000000
+  maximum_adv_participation: 0.01
+  charge_initial_entry: true
+  charge_terminal_liquidation: true
+
+neutral_portfolio:
+  long_quantile: 0.20
+  short_quantile: 0.20
+  gross_exposure: 1.0
+  max_name_weight: 0.10
+  standardized_exposure_tolerance: 0.15
+  feasibility_policy: expand_candidate_pools_without_relaxing_risk_limits
+  annual_short_borrow_bps: 200
+
+model:
+  first_prediction: "2018-01-31"
+  minimum_training_rows: 500
+  recency_half_life_years: 5
+  target: beta_size_residual_return_rank
+  seed: 929
+  ensemble_weights:
+    ridge: 0.20
+    extra_trees: 0.45
+    histogram_gbdt: 0.35
+  extra_trees:
+    n_estimators: 300
+    min_samples_leaf: 20
+    max_features: 0.65
+  histogram_gbdt:
+    max_iter: 250
+    learning_rate: 0.04
+    max_leaf_nodes: 15
+    l2_regularization: 1.0
+
+ablations:
+  - equal_weight_universe
+  - momentum_12_1_top6
+  - ridge_full_top6
+  - ml_momentum_only_top6
+  - ml_fundamentals_only_top6
+  - ml_without_momentum_top6
+  - ml_full_top6
+  - ml_full_neutral_long_short
+
+gates:
+  zero_pit_violations: true
+  require_permanent_ids_for_production: true
+  require_delisting_returns_for_production: true
+  active_information_ratio_minimum: 0.50
+  active_annualized_return_minimum: 0.04
+  relative_max_drawdown_floor: -0.20
+  maximum_single_name_gross_profit_share: 0.25
+  positive_at_cost_bps: 25
+  positive_at_double_base_cost: true
+  ml_incremental_bootstrap_p05_minimum: 0.0
+  neutral_sharpe_minimum: 0.80
+  neutral_absolute_beta_maximum: 0.10
+  neutral_max_drawdown_floor: -0.15
+  large_search_tstat_minimum: 3.0
+
+prospective:
+  strategy_version: champion_challenger_v1
+  governance_dir: governance/champion_challenger_v1
+  freeze_deadline: "2026-09-29T20:00:00-04:00"
+  first_signal_at: "2026-09-30T20:00:00-04:00"
+  first_entry_at: "2026-10-01T09:30:00-04:00"
+  minimum_months: 36
+  champion: momentum_12_1_top6
+  challenger: ml_full_top6
+  change_policy: any_strategy_change_requires_new_version

@@ -1,0 +1,158 @@
+research:
+  name: broad_universe_v3
+  strategy_version: broad_universe_v3
+  broad_panel: data/licensed/broad_universe_v3_panel.parquet
+  output_dir: artifacts/broad_universe_v3
+  seed: 929
+  evidence_status: blocked_until_broad_pit_panel_passes
+
+data_roles:
+  crsp:
+    role: historical_membership_permanent_ids_returns_and_delistings
+    required: true
+  compustat_pit:
+    role: filing_time_fundamental_features
+    required: true
+  marketdata:
+    role: unadjusted_historical_ohlcv_and_next_open_execution_crosscheck
+    required: true
+    may_define_universe: false
+  sec_edgar:
+    role: filing_timestamp_and_fundamental_crosscheck
+    required: true
+    may_define_universe: false
+  fred_alfred:
+    role: vintage_macro_state
+    required: true
+  yahoo_finance:
+    role: diagnostic_price_crosscheck_only
+    required: false
+    may_define_universe: false
+
+universe:
+  permanent_security_id: permno
+  permanent_company_id: permco
+  historical_membership_source: crsp_name_and_share_code_history
+  common_share_codes: [10, 11]
+  exchange_codes: [1, 2, 3]
+  one_security_per_company: true
+  selection_within_company: highest_point_in_time_market_cap
+  minimum_securities_per_month: 1000
+  preferred_securities_per_month: [2000, 4000]
+  minimum_price: 5.0
+  minimum_market_cap_usd: 100000000
+  minimum_adv_usd_3m: 1000000
+  require_explicit_delisting_return: true
+  require_historical_sector: true
+
+features:
+  columns:
+    - momentum_12_1
+    - momentum_6_1
+    - reversal_1m
+    - realized_vol_3m
+    - downside_vol_3m
+    - beta_12m
+    - idio_vol_12m
+    - illiquidity_3m
+    - log_dollar_volume_3m
+    - price_to_52w_high
+    - max_drawdown_12m
+    - skew_3m
+    - book_to_market
+    - earnings_yield
+    - roe
+    - roa
+    - gross_profitability
+    - debt_to_equity
+    - asset_growth
+    - sales_growth
+    - accruals
+    - free_cash_flow_yield
+    - log_market_cap
+    - fundamental_age_days
+    - fed_funds
+    - yield_curve
+    - vix
+    - baa_yield
+  nonlinear_interactions:
+    - momentum_x_liquidity
+    - momentum_x_volatility
+    - value_x_profitability
+    - quality_x_asset_growth
+    - profitability_x_leverage
+    - characteristics_x_macro_state
+
+model:
+  family: fixed_weight_ridge_extra_trees_histogram_gbdt
+  target: cross_sectional_rank_of_return_including_delistings
+  first_prediction: "2001-01-31"
+  minimum_training_rows: 100000
+  recency_half_life_years: 5
+  refit_frequency: annual
+  ensemble_weights:
+    ridge: 0.20
+    extra_trees: 0.45
+    histogram_gbdt: 0.35
+  extra_trees:
+    n_estimators: 500
+    min_samples_leaf: 50
+    max_features: 0.65
+  histogram_gbdt:
+    max_iter: 300
+    learning_rate: 0.03
+    max_leaf_nodes: 31
+    l2_regularization: 2.0
+
+portfolio:
+  holdings: 50
+  weighting: equal
+  maximum_name_weight: 0.03
+  maximum_sector_weight: 0.20
+  entry: next_session_open
+  exit: next_rebalance_open
+  trading_cost_bps_one_way: 15
+  charge_initial_entry: true
+  charge_terminal_liquidation: true
+
+validation:
+  security_holdout_folds: 5
+  random_portfolio_simulations: 10000
+  random_universe_simulations: 200
+  random_universe_sizes: [500, 1000, 2000]
+  random_universe_stratification: [historical_sector, point_in_time_size_decile]
+  label_permutation_retrains: 200
+  time_block_bootstrap_simulations: 5000
+  time_block_months: 12
+  multiple_testing_controls: [white_reality_check, spa, deflated_sharpe_ratio]
+  required_outputs:
+    - out_of_sample_r2
+    - monthly_rank_ic
+    - decile_monotonicity
+    - heldout_security_performance
+    - random_portfolio_empirical_p_value
+    - random_universe_dispersion
+    - label_permutation_empirical_p_value
+    - factor_alpha_after_costs
+    - capacity_and_cost_sensitivity
+
+gates:
+  minimum_oos_rank_r2: 0.0
+  minimum_mean_monthly_rank_ic: 0.02
+  minimum_heldout_active_information_ratio: 0.50
+  maximum_random_portfolio_empirical_p_value: 0.05
+  maximum_label_permutation_empirical_p_value: 0.05
+  minimum_positive_random_universe_fraction: 0.80
+  minimum_after_cost_factor_alpha_tstat: 3.0
+  maximum_single_name_gross_profit_share: 0.20
+  positive_at_cost_bps: 30
+  maximum_adv_participation: 0.01
+  prospective_months_required: 36
+
+conditional_diagnostic:
+  source_panel: artifacts/champion_challenger_v2/universe_snapshots.parquet
+  source_returns: artifacts/champion_challenger_v2/monthly_returns.csv
+  observed_strategy: m1_baseline
+  benchmark_strategy: equal_weight_universe
+  holdings: 6
+  warning: current_ticker_proxy_only_not_broad_universe_evidence

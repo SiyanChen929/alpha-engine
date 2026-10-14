@@ -1,0 +1,50 @@
+{
+  "schema_version": "sec_filing_sue_drift_bootstrap_repair_v1",
+  "recorded_at": "2026-09-03T11:41:15.952083+00:00",
+  "classification": "POST_OUTCOME_COMPUTATIONAL_REPAIR",
+  "selection_or_economic_specification_changed": false,
+  "reason": "The original non-circular moving-block implementation centered the observed series but did not center the finite-sample resampling design. Overlapping blocks therefore gave endpoint observations lower expected weight and shifted the simulated null mean.",
+  "attempt1": {
+    "artifact_manifest_path": "artifacts/sec_filing_sue_drift_v1/artifact_manifest.json",
+    "artifact_manifest_bytes": 3169,
+    "artifact_manifest_sha256": "5409a3f9c90de9a4b3ac31db3aead19c6d5efdcaf1192651f73f7e3cd447c307",
+    "entry_session_returns_path": "artifacts/sec_filing_sue_drift_v1/entry_session_returns.csv",
+    "entry_session_returns_bytes": 41633,
+    "entry_session_returns_sha256": "b0e2651b44abf8a1990499dc451e60fe21c43deba481e469302a418a4823c191",
+    "summary_metrics_path": "artifacts/sec_filing_sue_drift_v1/summary_metrics.json",
+    "summary_metrics_bytes": 3393,
+    "summary_metrics_sha256": "0d1c147b3c45c6541b756bb1fd75accf5becc96c1060fe95d8fb994da1e7e8ec",
+    "source_code_sha256": "e2920654c10d7b588a20a3c46b137009528085a733513ab5bb2b19e06b0ec690",
+    "protocol_sha256": "063bee0d8a1961a7a0d7048eaf787c634b6caa2abdf6f8ee305b756cdbaf45df"
+  },
+  "primary_column": "pair_net_30bps_return_20",
+  "repair": {
+    "variant": "noncircular_overlapping_moving_blocks_with_analytic_design_recentering",
+    "draws": 10000,
+    "block_length": 20,
+    "seed": 929,
+    "one_sided_alternative": "mean_greater_than_zero",
+    "finite_sample_correction": "subtract the exact conditional expectation induced by the sampled block positions and final-block truncation from every raw bootstrap mean",
+    "sensitivity_variant": "circular_all_start_moving_blocks"
+  },
+  "trial_governance": {
+    "attempt1_disclosed_global_floor": 119,
+    "computational_attempt": 2,
+    "conservative_repair_increment": 1,
+    "resulting_disclosed_global_floor": 120,
+    "economic_hypothesis_increment": 0,
+    "all_results_retained": true
+  },
+  "decision_rule": "The candidate remains retired if the corrected primary mean is non-positive, the corrected empirical p times the disclosed global floor exceeds 0.05, or any unchanged required efficacy gate failed in attempt 1.",
+  "outputs": {
+    "directory": "artifacts/sec_filing_sue_drift_v1_bootstrap_repair1",
+    "required": [
+      "bootstrap_summary.json",
+      "bootstrap_draws.parquet",
+      "validation_gates.csv",
+      "run_manifest.json",
+      "report-source.md",
+      "artifact_manifest.json"
+    ]
+  }
+}

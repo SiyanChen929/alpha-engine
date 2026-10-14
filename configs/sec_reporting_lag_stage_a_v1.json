@@ -1,0 +1,74 @@
+{
+  "schema_version": "sec_reporting_lag_stage_a_protocol_v1",
+  "experiment_id": "sec_reporting_lag_stage_a_v1",
+  "authored_at": "2026-09-03T23:50:00-04:00",
+  "status": "PRE_OUTCOME_DESIGN",
+  "historical_alpha_verdict": "INVALID",
+  "model_alpha_verdict": "NOT VALIDATED",
+  "deployment_verdict": "NOT AUTHORIZED",
+  "economic_hypothesis": "Among otherwise tradable firms, a shorter lag between fiscal year end and the public 10-K acceptance date proxies for operating and reporting efficiency. A monthly long-fastest, short-slowest portfolio may earn a positive net spread.",
+  "source_boundaries": {
+    "mapped_sec_headers": "artifacts/sec_filing_change_stage_a_v1/preoutcome_plan_v3/mapped_header_inventory.parquet",
+    "mapped_sec_plan_manifest": "artifacts/sec_filing_change_stage_a_v1/preoutcome_plan_v3/plan_manifest.json",
+    "universe": "artifacts/public_broad_proxy_v1/data/frozen_proxy_universe.csv",
+    "expected_universe_names": 1500,
+    "price_panel": "artifacts/public_broad_proxy_v1/data/daily_prices.parquet",
+    "exchange_calendar": "artifacts/reference_calendars/xnys_v1/xnys_regular_sessions_2014_2028.csv",
+    "calendar_receipt": "artifacts/reference_calendars/xnys_v1/calendar_receipt.json",
+    "universe_status": "CURRENT_SURVIVOR_PROXY_NOT_PIT",
+    "outcome_access_during_plan": false
+  },
+  "signal_definition": {
+    "form": "10-K",
+    "reporting_lag_days": "calendar days from report_date through SEC acceptance date",
+    "minimum_reporting_lag_days": 20,
+    "maximum_reporting_lag_days": 120,
+    "maximum_signal_age_days": 400,
+    "decision_clock": "last regular XNYS close of the prior calendar month plus 30 minutes",
+    "entry": "second regular XNYS open of the formation month",
+    "exit": "second regular XNYS open of the following month",
+    "sort": "cross-sectional deterministic quintiles by reporting_lag_days ascending, accession then ticker tie-break",
+    "position": "equal-weight long shortest-lag quintile at 100 percent NAV and short longest-lag quintile at 100 percent NAV, dollar neutral at 200 percent gross exposure",
+    "minimum_prior_close": 5.0,
+    "minimum_prior_stock_sessions": 252,
+    "adv_window_sessions": 63,
+    "minimum_trailing_adv_usd": 20000000,
+    "primary_cost_bps_one_way": 30,
+    "stress_cost_bps_one_way": 50,
+    "portfolio_aum_usd": 10000000
+  },
+  "cohorts": {
+    "development": {"formation_month_start": "2019-02", "formation_month_end": "2021-12", "outcome_role": "opened_descriptive_only"},
+    "confirmation": {"formation_month_start": "2022-01", "formation_month_end": "2024-12", "outcome_role": "single_frozen_primary_test"},
+    "sealed_2025": {"formation_month_start": "2025-01", "formation_month_end": "2025-12", "outcome_role": "signal_only_outcome_join_forbidden"}
+  },
+  "formal_tests": {
+    "primary_trial_id": "SEC_10K_REPORTING_LAG_CONFIRMATION_2022_2024_NET30",
+    "primary": "mean monthly fastest-minus-slowest return net of 30 bps one-way turnover cost",
+    "stress": "mean monthly fastest-minus-slowest return net of 50 bps one-way turnover cost",
+    "inference": "Newey-West monthly mean test with lag 3",
+    "current_disclosed_trial_floor": 132,
+    "multiplicity": "Bonferroni screen using at least the disclosed global trial floor"
+  },
+  "confirmation_gates": {
+    "minimum_portfolio_months": 36,
+    "minimum_unique_cik": 250,
+    "primary_net_mean_minimum": 0.0,
+    "primary_newey_west_t_minimum": 3.0,
+    "global_adjusted_p_maximum": 0.05,
+    "stress_net_mean_minimum": 0.0,
+    "maximum_month_absolute_return_contribution_share": 0.20,
+    "minimum_leave_one_cik_out_net30_mean": 0.0,
+    "maximum_single_cik_gross_weight_share": 0.02,
+    "maximum_trade_to_trailing_adv_at_10m": 0.01
+  },
+  "hard_claim_limits": [
+    "The historical universe is selected from 2026 survivors and lacks delisting returns and permanent security identifiers.",
+    "Historical accelerated-filer status and the paper's contemporaneous 750 million dollar market-cap screen are unavailable.",
+    "SEC API acceptance timestamps have not been reconciled to raw accession SGML headers.",
+    "Yahoo adjusted opens can be retrospectively revised and are not execution-grade quotes.",
+    "Historical borrow, financing and TAQ impact are absent.",
+    "The original paper PDF was not directly inspected; this is a paper-inspired proxy based on its public abstract and a secondary methodology summary.",
+    "The 2025 cohort must remain signal-only until a separately frozen reveal decision."
+  ]
+}

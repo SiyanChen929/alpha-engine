@@ -1,0 +1,150 @@
+research:
+  name: public_pit_demo
+  start: "2010-01-01"
+  end: "2026-08-31"
+  first_prediction: "2018-01-31"
+  holdout_start: "2022-01-01"
+  rebalance: month_end
+  execution_lag_sessions: 1
+  seed: 929
+
+data:
+  cache_dir: data/cache
+  output_dir: artifacts/public_research
+  market_provider: yahoo
+  benchmark: SPY
+  sec_user_agent_env: SEC_USER_AGENT
+  option_chain_smoke:
+    underlying: AAPL
+    quote_date: "2020-01-06"
+    expiration: "2020-01-17"
+  fred_series:
+    fed_funds: DFF
+    yield_curve: T10Y2Y
+    vix: VIXCLS
+    baa_yield: DBAA
+
+universe:
+  source: current_liquid_research_universe
+  minimum_price: 5.0
+  minimum_adv_usd: 20000000
+  tickers:
+    - AAPL
+    - MSFT
+    - NVDA
+    - AVGO
+    - ORCL
+    - IBM
+    - CSCO
+    - ADBE
+    - CRM
+    - QCOM
+    - GOOGL
+    - META
+    - AMZN
+    - TSLA
+    - HD
+    - MCD
+    - NKE
+    - SBUX
+    - WMT
+    - COST
+    - PG
+    - KO
+    - PEP
+    - PM
+    - JNJ
+    - PFE
+    - MRK
+    - ABBV
+    - AMGN
+    - GILD
+    - UNH
+    - JPM
+    - BAC
+    - WFC
+    - GS
+    - MS
+    - C
+    - V
+    - MA
+    - CAT
+    - DE
+    - HON
+    - UPS
+    - LMT
+    - RTX
+    - LIN
+    - APD
+    - XOM
+    - CVX
+    - COP
+    - SLB
+    - NEE
+    - DUK
+    - SO
+
+features:
+  price:
+    - momentum_12_1
+    - momentum_6_1
+    - reversal_1m
+    - realized_vol_3m
+    - downside_vol_3m
+    - beta_12m
+    - idio_vol_12m
+    - illiquidity_3m
+    - log_dollar_volume_3m
+    - price_to_52w_high
+    - max_drawdown_12m
+    - skew_3m
+  fundamental:
+    - book_to_market
+    - earnings_yield
+    - roe
+    - roa
+    - gross_profitability
+    - debt_to_equity
+    - asset_growth
+    - sales_growth
+    - accruals
+    - free_cash_flow_yield
+  macro:
+    - fed_funds
+    - yield_curve
+    - vix
+    - baa_yield
+
+model:
+  minimum_history_months: 60
+  refit_frequency: annual
+  recency_half_life_years: 5
+  ensemble_weights:
+    ridge: 0.20
+    extra_trees: 0.45
+    histogram_gbdt: 0.35
+  extra_trees:
+    n_estimators: 300
+    min_samples_leaf: 20
+    max_features: 0.65
+  histogram_gbdt:
+    max_iter: 250
+    learning_rate: 0.04
+    max_leaf_nodes: 15
+    l2_regularization: 1.0
+
+portfolio:
+  long_quantile: 0.20
+  short_quantile: 0.20
+  gross_exposure: 1.0
+  max_name_weight: 0.10
+  standardized_exposure_tolerance: 0.15
+  trading_cost_bps_one_way: 15
+  annual_short_borrow_bps: 200
+  cost_sensitivity_bps: [5, 15, 25, 50]
+
+gates:
+  holdout_sharpe_minimum: 0.50
+  newey_west_tstat_minimum: 2.00
+  bootstrap_sharpe_p05_minimum: 0.00
+  maximum_drawdown_floor: -0.20

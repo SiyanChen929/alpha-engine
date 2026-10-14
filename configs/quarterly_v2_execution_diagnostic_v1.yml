@@ -1,0 +1,54 @@
+strategy_version: quarterly_v2_execution_diagnostic_v1
+research_classification: opened_posthoc_execution_diagnostic_only
+
+source:
+  recovered_artifact: artifacts/quarterly_fundamental_momentum_diagnostic_v2_attempt1_recovered
+  monthly_panel: artifacts/quarterly_fundamental_momentum_diagnostic_v2_attempt1_recovered/monthly_quarterly_signal_panel.parquet
+  expected_monthly_panel_sha256: 76c80b57c35e54ce1eb8aaaff40df10969f54898f3c9b27e97f64c1015e81c4d
+  decile_monthly: artifacts/quarterly_fundamental_momentum_diagnostic_v2_attempt1_recovered/decile_monthly.csv
+  expected_decile_monthly_sha256: 3740e9465b4d7e32660feb04cd33d527a8cda8fcfd78bb555619cefe2a15277d
+  recovered_manifest: artifacts/quarterly_fundamental_momentum_diagnostic_v2_attempt1_recovered/artifact_manifest.json
+  expected_recovered_manifest_sha256: deb98a07bbfcee75621e2e5340ed7792ff5bc28df88d67cd5a6c49b7f90e438d
+
+portfolio:
+  signal: quarterly_fundamental_momentum_score
+  long_decile: 10
+  short_decile: 1
+  weighting: equal_weight_each_sleeve
+  gross_exposure: 2.0
+  decile_tie_break: score_then_issuer_cik_then_ticker
+  initial_formation_traded_notional: 2.0
+  turnover: sum_absolute_trades_after_mark_to_market_and_unit_gross_renormalization
+
+costs:
+  interpretation: one_way_basis_points_per_dollar_traded
+  scenarios_bps: [25, 50]
+  borrow_fee_included: false
+  market_impact_model_included: false
+
+capacity:
+  adv_column: adv_usd_3m
+  participation_rates: [0.01, 0.05]
+  definition: minimum_equal_weight_sleeve_AUM_satisfying_each_holding_notional_le_participation_times_lagged_ADV
+  borrow_capacity_included: false
+
+evaluation:
+  primary_period: pre_2026
+  reporting_only_period: 2026_h1
+  hac_lags: 3
+  prior_global_trial_floor: 110
+  cost_tests_added: 2
+  resulting_global_trial_floor: 112
+  p_values: one_sided_positive_direction_HAC_normal
+
+gates:
+  frozen_gross_signal_statistical_gate_required: true
+  net_annualized_return_minimum: 0.0
+  net_hac_tstat_minimum: 2.0
+  permanent_security_lineage_required: true
+  complete_delisting_returns_required: true
+  borrow_required_for_short_sleeve: true
+  capacity_requires_complete_positive_adv: true
+
+outputs:
+  directory: artifacts/quarterly_v2_execution_diagnostic_v1

@@ -1,0 +1,11 @@
+{
+  "broad_panel_absent_at_registration": true,
+  "claim_limit": "methodology lock only; not a prospective performance registration",
+  "config_sha256": "923caf1e5aec99ea43fcab265e9de34aff481df7ef83116cebae8a8aed122580",
+  "opened_period": true,
+  "purpose": "lock_methodology_before_first_access_to_the_licensed_broad_panel",
+  "registered_at": "2026-09-02T16:00:32.527263+00:00",
+  "source_file_count": 34,
+  "source_tree_sha256": "343531ab9333e51e83ad9cafe4b387655d1c32ff49dad77b7f2e834fd3877771",
+  "strategy_version": "broad_universe_v3"
+}

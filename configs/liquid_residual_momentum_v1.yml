@@ -1,0 +1,117 @@
+research:
+  strategy_version: liquid_residual_momentum_v1
+  evidence_status: opened_post_selection_development_current_survivor_proxy
+  source_panel: artifacts/public_broad_proxy_v1/data/model_eligible_panel.parquet
+  source_daily_prices: artifacts/public_broad_proxy_v1/data/daily_prices.parquet
+  output_dir: artifacts/liquid_residual_momentum_v1
+  benchmark_ticker: SPY
+  first_signal_date: "2019-01-01"
+  seed: 929
+
+universe:
+  upstream_definition: current_sec_registrants_selected_with_2026_08_31_liquidity
+  upstream_survivorship_free: false
+  upstream_delisting_complete: false
+  monthly_selection: top_contemporaneous_trailing_63_session_adv
+  monthly_size: 1000
+  minimum_price: 5.0
+  minimum_adv_usd: 50000000
+  minimum_complete_cross_section: 500
+  tie_breaker: ticker_ascending
+
+signal:
+  primary: market_residual_momentum_standardized
+  benchmark: exact_total_return_momentum_12_1
+  model: daily_market_model_proxy_for_fama_french_residual_momentum
+  beta_window_sessions: 252
+  beta_window_end: one_month_endpoint_t_minus_21
+  minimum_beta_observations: 180
+  formation_sessions: 253
+  skip_sessions: 21
+  minimum_formation_observations: 220
+  include_regression_alpha_in_signal: false
+  standardize_by_formation_residual_volatility: true
+  decision_clock: after_month_end_close
+  entry_clock: next_session_open
+  exit_clock: following_rebalance_open
+
+portfolio:
+  holdings: 50
+  retention_rank: 75
+  weighting: equal
+  trading_cost_bps_one_way: 25
+  cost_sensitivity_bps: [15, 25, 30, 50]
+  charge_initial_entry: true
+  charge_terminal_liquidation: true
+  aum_sensitivity_usd: [2000000, 5000000, 10000000, 25000000]
+  maximum_adv_participation: 0.01
+
+development_family:
+  primary_candidate: residual_momentum_top50
+  disclosed_candidates:
+    - total_momentum_top50
+    - residual_momentum_top50
+    - cross_section_neutralized_score_top50
+  neutralization_exposures:
+    - beta_12m
+    - log_market_cap
+    - log_dollar_volume_3m
+    - idio_vol_12m
+  known_opened_searches:
+    - top500_and_top1000_liquidity_universes
+    - 20m_25m_and_50m_adv_floors
+    - total_market_residual_and_score_neutralized_signals
+    - unbuffered_and_rank75_retention_variants
+    - 15bps_and_25bps_base_cost_diagnostics
+  note: primary chosen after opened preliminary diagnostics; historical inference is post-selection
+
+validation:
+  periods:
+    full:
+      entry_at_or_after: null
+      entry_before: null
+    pre_2026:
+      entry_at_or_after: null
+      entry_before: "2026-01-01"
+    recent_2023_2025:
+      entry_at_or_after: "2023-01-01"
+      entry_before: "2026-01-01"
+    year_2026_h1:
+      entry_at_or_after: "2026-01-01"
+      entry_before: "2026-07-01"
+  block_bootstrap_simulations: 5000
+  block_length_months: 12
+  turnover_matched_random_portfolios: 5000
+  multiple_testing_family_size: 12
+
+gates:
+  pre_2026_active_return_minimum: 0.02
+  pre_2026_information_ratio_minimum: 0.50
+  pre_2026_hac_tstat_after_search_minimum: 3.00
+  residual_minus_total_return_minimum: 0.00
+  bootstrap_active_sharpe_p05_minimum: 0.00
+  positive_active_at_cost_bps: 50
+  maximum_relative_drawdown: -0.20
+  minimum_decile_rank_monotonicity: 0.80
+  maximum_adv_participation: 0.01
+  prospective_months_minimum: 36
+
+claim_limits:
+  permitted:
+    - opened_development_evidence_within_current_survivor_proxy
+    - comparison_of_fixed_signal_definitions_under_identical_execution
+  prohibited:
+    - survivorship_free_us_equity_alpha
+    - untouched_holdout
+    - production_ready
+    - guaranteed_future_returns
+
+prospective:
+  strategy_version: liquid_residual_momentum_v1
+  governance_dir: governance/liquid_residual_momentum_v1
+  freeze_deadline: "2026-09-29T20:00:00-04:00"
+  first_signal_at: "2026-09-30T20:00:00-04:00"
+  first_entry_at: "2026-10-01T09:30:00-04:00"
+  minimum_months: 36
+  champion_if_historical_gates_pass: residual_momentum_top50
+  change_policy: any_signal_universe_cost_or_code_change_requires_new_version

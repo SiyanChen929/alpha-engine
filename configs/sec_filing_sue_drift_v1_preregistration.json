@@ -1,0 +1,179 @@
+{
+  "schema_version": "sec_filing_sue_drift_preregistration_v1",
+  "frozen_at": "2026-09-03T11:32:39.798088Z",
+  "pre_outcome_amendment": {
+    "prior_protocol_sha256": "15fc33d50c6389dcdf57a0eedf3ad842ae5f5d3d581d7871b2c6d011a0800bcd",
+    "outcomes_computed_before_amendment": false,
+    "reason": "Independent red-team review found that acceptance plus three minutes is a conservative dissemination proxy, not a verified first-public clock, and that some upstream timestamps are clamped to filing-day end. The experiment name and gates were narrowed before any candidate outcome was computed."
+  },
+  "experiment": {
+    "name": "sec_filing_sue_drift_v1",
+    "purpose": "low_cost_post_edgar_filing_drift_falsification",
+    "research_status": "OPENED_HISTORICAL_DIAGNOSTIC_ONLY",
+    "strict_preregistration_valid_for_alpha_claim": false,
+    "performance_claim_permitted": false,
+    "reason": "Historical prices and related quarterly-factor outcomes were accessible before this protocol. This protocol freezes one new candidate before its own outcome computation, but cannot recreate an untouched outer sample."
+  },
+  "sources": {
+    "sec_api_documentation": "https://www.sec.gov/search-filings/edgar-application-programming-interfaces",
+    "pead_original_doi": "https://doi.org/10.2307/2491062",
+    "quarterly_release_features": {
+      "path": "artifacts/quarterly_fundamental_momentum_diagnostic_v2_attempt1_recovered/quarterly_release_features.parquet",
+      "bytes": 5255150,
+      "sha256": "5f573e08fcb8282a884c92f7a24dc115ae459d465f929cf8ae94df9d2ca9a764",
+      "upstream_manifest_path": "artifacts/quarterly_fundamental_momentum_diagnostic_v2_attempt1_recovered/artifact_manifest.json",
+      "upstream_manifest_sha256": "deb98a07bbfcee75621e2e5340ed7792ff5bc28df88d67cd5a6c49b7f90e438d"
+    },
+    "daily_prices": {
+      "path": "artifacts/public_broad_proxy_v1/data/daily_prices.parquet",
+      "bytes": 162777645,
+      "sha256": "028e264e96a8ca87fdb6af059f91495f9f069d713775c1a74fc4bab52cabb52a",
+      "upstream_manifest_path": "artifacts/public_broad_proxy_v1/frozen_research_manifest.json",
+      "upstream_manifest_sha256": "152b1fb5f764d297d783c21eddcb08015d740749041bf4cc269e9c5260e3d30a"
+    }
+  },
+  "release_eligibility": {
+    "forms": ["10-Q"],
+    "release_kinds": ["reported_10q"],
+    "clock_sources": ["submissions_acceptance_plus_3m"],
+    "header_inventory_verified": true,
+    "supersession_only": false,
+    "net_income_same_tag_comparator": true,
+    "required_non_null": [
+      "ticker",
+      "cik",
+      "accession",
+      "fiscal_end",
+      "available_at",
+      "earnings_change_on_assets"
+    ],
+    "deduplication_key": ["accession"],
+    "known_limitation": "Company Facts compatible-context data lack raw XBRL contextRef and use current-survivor ticker mapping. The upstream available_at is an acceptance-derived conservative proxy; records clamped to filing-day end must be identified."
+  },
+  "signal": {
+    "name": "historical_seasonal_earnings_change_standardized_by_prior_variability",
+    "base_value": "earnings_change_on_assets",
+    "formula": "earnings_change_on_assets_t / sample_std(previous_8_eligible_10Q_earnings_change_on_assets)",
+    "history_order": ["ticker", "available_at", "accession"],
+    "history_shift_events": 1,
+    "history_window_events": 8,
+    "minimum_history_events": 8,
+    "zero_or_nonfinite_denominator_policy": "exclude_and_report",
+    "development_window": {
+      "information_at_gte": "2018-01-01T00:00:00Z",
+      "information_at_lt": "2023-01-01T00:00:00Z"
+    },
+    "tail_calibration": {
+      "uses_returns": false,
+      "lower_quantile": 0.20,
+      "upper_quantile": 0.80,
+      "calibration_population": "all development-window signal-complete events before outcome joins"
+    },
+    "evaluation_direction": {
+      "signal_lte_development_q20": -1,
+      "signal_gte_development_q80": 1,
+      "middle_60_percent": 0
+    },
+    "post_result_variants_permitted": false
+  },
+  "universe_and_clock": {
+    "evaluation_information_at_gte": "2023-01-01T00:00:00Z",
+    "evaluation_information_at_lt": "2026-01-01T00:00:00Z",
+    "required_exit_open_lte": "2025-12-31T23:59:59Z",
+    "entry": "first observed regular-session stock open timestamp strictly after the conservative SEC available_at proxy",
+    "exit": "regular-session open 20 benchmark sessions after entry",
+    "benchmark": "SPY",
+    "benchmark_calendar_policy": "SPY observed sessions define the calendar; no synthetic or forward-filled sessions",
+    "minimum_prior_close_usd": 5.0,
+    "adv_window_sessions": 63,
+    "minimum_prior_adv_usd": 20000000.0,
+    "liquidity_window_rule": "all price and dollar-volume observations end strictly before entry open",
+    "same_ticker_entry_session_policy": "collapse to one event when tail directions agree; exclude and report conflicts",
+    "missing_entry_exit_or_benchmark_price_policy": "exclude_and_fail_data_completeness_gate",
+    "price_field": "adj_open",
+    "price_field_limitation": "retrospectively adjusted Yahoo proxy; no permanent-security or delisting lineage"
+  },
+  "estimands": {
+    "primary_horizon_sessions": 20,
+    "stock_abnormal_return": "stock_open_to_open_return - SPY_open_to_open_return",
+    "event_pair_gross_return_per_gross_dollar": "0.5 * direction * stock_abnormal_return",
+    "primary_cost_bps_one_way_per_traded_dollar": 30,
+    "primary_round_trip_cost_per_gross_dollar": 0.006,
+    "stress_cost_bps_one_way_per_traded_dollar": 50,
+    "stress_round_trip_cost_per_gross_dollar": 0.010,
+    "primary_net_return": "event_pair_gross_return_per_gross_dollar - 0.006",
+    "pre_event_placebo": "same signed SPY-adjusted pair return from 20 benchmark sessions before entry through entry; interpreted as a pre-filing trend diagnostic, not proof of no earlier earnings release",
+    "aggregation_unit": "equal-weight mean within entry session, then equal-weight across entry sessions",
+    "portfolio_claim": false,
+    "causal_claim": false
+  },
+  "inference": {
+    "primary_direction": "greater_than_zero",
+    "hac_lags_over_ordered_entry_sessions": 20,
+    "moving_block_bootstrap_draws": 10000,
+    "moving_block_length_entry_sessions": 20,
+    "bootstrap_seed": 929,
+    "bootstrap_null": "center entry-session primary returns before resampling",
+    "multiple_testing_method": "global_conservative_bonferroni_plus_empirical_block_p",
+    "minimum_evaluation_entry_sessions": 250,
+    "minimum_evaluation_calendar_quarters": 12,
+    "minimum_signal_complete_development_months_for_this_kill_test": 30,
+    "strict_confirmation_requires_signal_complete_development_months": 60
+  },
+  "trial_ledger": {
+    "prior_opened_global_floor": 112,
+    "reserved_form4_primary": 1,
+    "tests_added_here": [
+      "combined_directional_net_pair_mean_20_sessions_30bps",
+      "combined_directional_gross_pair_mean_20_sessions",
+      "positive_tail_gross_abnormal_mean_20_sessions",
+      "negative_tail_signed_gross_abnormal_mean_20_sessions",
+      "signed_pre_event_placebo_20_sessions",
+      "combined_directional_net_pair_mean_20_sessions_50bps"
+    ],
+    "tests_added_count": 6,
+    "resulting_disclosed_global_floor": 119,
+    "all_results_retained": true
+  },
+  "stop_gates": {
+    "data": {
+      "input_hashes_match": true,
+      "conservative_acceptance_or_eod_proxy_coverage": 1.0,
+      "non_eod_clamped_acceptance_proxy_coverage_required_for_validation": 1.0,
+      "verified_first_public_retrieval_clock_required_for_validation": true,
+      "event_price_completeness": 1.0,
+      "permanent_security_identifier_coverage_required_for_validation": 1.0,
+      "complete_delisting_return_coverage_required_for_validation": 1.0
+    },
+    "efficacy": {
+      "primary_net_mean": "greater_than_zero",
+      "primary_hac_t": "greater_than_or_equal_to_max_3_and_family_critical_value",
+      "global_adjusted_p": "less_than_or_equal_to_0.05",
+      "moving_block_empirical_p": "less_than_or_equal_to_0.05_divided_by_119",
+      "positive_and_negative_tail_directions": "both_correct",
+      "pre_event_placebo": "not_positive_and_economically_small"
+    },
+    "decision": "Any efficacy failure retires this public-data candidate without threshold, horizon, universe, or model repair. Any lineage failure preserves only an INVALID exploratory diagnosis."
+  },
+  "strict_confirmation": {
+    "fresh_information_boundary": "2026-10-01T00:00:00-04:00",
+    "required_action": "Freeze a new cohort and permanent-security lineage before its first label; this historical diagnostic cannot satisfy that gate."
+  },
+  "outputs": {
+    "directory": "artifacts/sec_filing_sue_drift_v1",
+    "required": [
+      "run_manifest.json",
+      "input_verification.json",
+      "release_events.parquet",
+      "event_exclusions.csv",
+      "event_returns.csv",
+      "entry_session_returns.csv",
+      "summary_metrics.json",
+      "trial_ledger.json",
+      "validation_gates.csv",
+      "manual_reconstruction.json",
+      "report-source.md",
+      "artifact_manifest.json"
+    ]
+  }
+}
